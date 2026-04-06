@@ -23,12 +23,21 @@ export function LoginForm({
   const { login, loading } = useAuth()
   const navigate = useNavigate()
 
+  const getDashboardPath = (role) => {
+    switch (role) {
+      case "ADMIN": return "/admin"
+      case "MANAGER": return "/manager"
+      case "TECHNICIAN": return "/technician"
+      default: return "/dashboard"
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
     try {
-      await login({ email, password })
-      navigate("/admin")
+      const user = await login({ email, password })
+      navigate(getDashboardPath(user.role))
     } catch (err) {
       setError(err.response?.data || "Failed to login. Please check your credentials.")
     }

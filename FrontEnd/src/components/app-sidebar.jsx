@@ -30,36 +30,61 @@ const data = {
       title: "Dashboard",
       url: "/admin",
       icon: LayoutDashboard,
+      allowedRoles: ["ADMIN"],
     },
     {
       title: "User Management",
       url: "/admin/user-management",
       icon: Users,
+      allowedRoles: ["ADMIN"],
     },
     {
       title: "Admin Management",
       url: "/admin/admin-management",
       icon: ShieldCheck,
-    },
-    {
-      title: "Audit Logs",
-      url: "/admin/audit-logs",
-      icon: History,
+      allowedRoles: ["ADMIN"],
     },
     {
       title: "Banned Users",
       url: "/admin/banned-users",
       icon: UserX,
+      allowedRoles: ["ADMIN"],
+    },
+    {
+      title: "Manager Tools",
+      url: "/manager",
+      icon: ShieldCheck,
+      allowedRoles: ["MANAGER"],
+    },
+    {
+      title: "Maintenance Jobs",
+      url: "/technician",
+      icon: Calendar,
+      allowedRoles: ["TECHNICIAN"],
+    },
+    {
+      title: "Student Dashboard",
+      url: "/dashboard",
+      icon: GraduationCap,
+      allowedRoles: ["USER"],
     },
     {
       title: "Reports",
       url: "/admin/reports",
       icon: FileText,
+      allowedRoles: ["ADMIN", "MANAGER"],
+    },
+    {
+      title: "Audit Logs",
+      url: "/admin/audit-logs",
+      icon: History,
+      allowedRoles: ["ADMIN"],
     },
     {
       title: "Settings",
       url: "/admin/settings",
       icon: Settings,
+      allowedRoles: ["ADMIN", "MANAGER", "TECHNICIAN", "USER"],
     },
   ],
 }
@@ -67,6 +92,10 @@ const data = {
 export function AppSidebar({ ...props }) {
   const { user } = useAuth()
   
+  const filteredNavMain = data.navMain.filter(item => 
+    !item.allowedRoles || item.allowedRoles.includes(user?.role)
+  )
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="p-4 border-b">
@@ -80,7 +109,7 @@ export function AppSidebar({ ...props }) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={filteredNavMain} />
       </SidebarContent>
       <SidebarSeparator />
       <SidebarFooter>

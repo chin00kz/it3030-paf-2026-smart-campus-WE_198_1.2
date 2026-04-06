@@ -28,12 +28,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { PlusCircle, UserPlus, Mail, Shield, Key } from "lucide-react"
+import { PlusCircle, UserPlus, Mail, Shield, Key, Edit2, ShieldAlert, ShieldCheck } from "lucide-react"
 
 export default function UserManagement() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [selectedUserId, setSelectedUserId] = useState(null)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -66,29 +68,83 @@ export default function UserManagement() {
     setFormData((prev) => ({ ...prev, role: value }))
   }
 
+  const handleEditClick = (user) => {
+    setIsEditing(true)
+    setSelectedUserId(user.id)
+    setFormData({
+      name: user.name,
+      email: user.email,
+      password: "", // Keep password empty unless changing
+      role: user.role,
+    })
+    setIsDialogOpen(true)
+  }
+
+  const handleToggleStatus = async (user) => {
+    try {
+      await userService.toggleUserStatus(user.id)
+      fetchUsers()
+    } catch (error) {
+      console.error("Failed to toggle status:", error)
+      alert("Failed to update user status.")
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      await userService.createUser(formData)
+      if (isEditing) {
+        await userService.updateUser(selectedUserId, formData)
+      } else {
+        await userService.createUser(formData)
+      }
       setIsDialogOpen(false)
-      setFormData({ name: "", email: "", password: "", role: "USER" })
+      resetForm()
       fetchUsers()
     } catch (error) {
-      console.error("Failed to create user:", error)
-      alert("Failed to create user. Please check if the email already exists.")
+      console.error("Failed to save user:", error)
+      alert("Failed to save user. Please check if the email already exists.")
     }
+  }
+
+  const resetForm = () => {
+    setIsEditing(false)
+    setSelectedUserId(null)
+    setFormData({ name: "", email: "", password: "", role: "USER" })
   }
 
   const getRoleBadge = (role) => {
     const styles = {
-      ADMIN: "bg-red-100 text-red-700 border-red-200",
-      MANAGER: "bg-blue-100 text-blue-700 border-blue-200",
-      TECHNICIAN: "bg-green-100 text-green-700 border-green-200",
-      USER: "bg-gray-100 text-gray-700 border-gray-200",
+      ADMIN: "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800",
+      MANAGER: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800",
+      TECHNICIAN: "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800",
+      USER: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700",
     }
     return (
       <Badge variant="outline" className={styles[role] || styles.USER}>
         {role}
+      </Badge>
+    )
+  }
+
+  const getStatusBadge = (user) => {
+    return user.active ? (
+      <Badge 
+        variant="outline" 
+        className="bg-emerald-50 text-emerald-700 border-emerald-200 cursor-pointer hover:bg-emerald-100 transition-colors gap-1"
+        onClick={() => handleToggleStatus(user)}
+      >
+        <ShieldCheck className="h-3 w-3" />
+        Active
+      </Badge>
+    ) : (
+      <Badge 
+        variant="outline" 
+        className="bg-rose-50 text-rose-700 border-rose-200 cursor-pointer hover:bg-rose-100 transition-colors gap-1"
+        onClick={() => handleToggleStatus(user)}
+      >
+        <ShieldAlert className="h-3 w-3" />
+        Banned
       </Badge>
     )
   }
@@ -101,7 +157,10 @@ export default function UserManagement() {
           <p className="text-slate-500 dark:text-slate-400 mt-1">Manage platform access and roles for students and staff.</p>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open)
+          if (!open) resetForm()
+        }}>
           <DialogTrigger asChild>
             <Button className="bg-primary hover:bg-primary/90 shadow-sm gap-2">
               <UserPlus className="h-4 w-4" />
@@ -111,9 +170,9 @@ export default function UserManagement() {
           <DialogContent className="sm:max-w-[425px]">
             <form onSubmit={handleSubmit}>
               <DialogHeader>
-                <DialogTitle className="text-xl">Create New User</DialogTitle>
+                <DialogTitle className="text-xl">{isEditing ? "Edit User Profile" : "Create New User"}</DialogTitle>
                 <DialogDescription>
-                  Enter the details for the new platform user.
+                  {isEditing ? "Update the account details for this user." : "Enter the details for the new platform user."}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-5 py-6">
@@ -149,18 +208,20 @@ export default function UserManagement() {
                   </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="password text-sm font-medium">Initial Password</Label>
+                  <Label htmlFor="password" title={isEditing ? "Leave blank to keep current password" : ""} className="text-sm font-medium">
+                    {isEditing ? "Reset Password (Optional)" : "Initial Password"}
+                  </Label>
                   <div className="relative">
                     <Key className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                     <Input
                       id="password"
                       name="password"
                       type="password"
-                      placeholder="••••••••"
+                      placeholder={isEditing ? "Leave blank to keep current" : "••••••••"}
                       className="pl-10"
                       value={formData.password}
                       onChange={handleInputChange}
-                      required
+                      required={!isEditing}
                     />
                   </div>
                 </div>
@@ -186,7 +247,9 @@ export default function UserManagement() {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">Create Account</Button>
+                <Button type="submit" className="bg-primary">
+                  {isEditing ? "Save Changes" : "Create Account"}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -197,16 +260,17 @@ export default function UserManagement() {
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 dark:bg-slate-900/50">
-              <TableHead className="w-[80px] font-semibold text-slate-900 dark:text-slate-50">ID</TableHead>
-              <TableHead className="font-semibold text-slate-900 dark:text-slate-50">Name</TableHead>
-              <TableHead className="font-semibold text-slate-900 dark:text-slate-50">Email</TableHead>
-              <TableHead className="font-semibold text-slate-900 dark:text-slate-50">Role</TableHead>
+              <TableHead className="w-[80px] font-semibold text-slate-900 dark:text-slate-50 text-center">ID</TableHead>
+              <TableHead className="font-semibold text-slate-900 dark:text-slate-50">User Details</TableHead>
+              <TableHead className="font-semibold text-slate-900 dark:text-slate-50">System Role</TableHead>
+              <TableHead className="font-semibold text-slate-900 dark:text-slate-50 text-center">Status</TableHead>
+              <TableHead className="font-semibold text-slate-900 dark:text-slate-50 text-right pr-6">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-32 text-center text-slate-500">
+                <TableCell colSpan={5} className="h-32 text-center text-slate-500">
                   <div className="flex items-center justify-center gap-2">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                     Loading users...
@@ -215,17 +279,34 @@ export default function UserManagement() {
               </TableRow>
             ) : users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-32 text-center text-slate-500">
+                <TableCell colSpan={5} className="h-32 text-center text-slate-500">
                   No users found. Create your first user account to get started.
                 </TableCell>
               </TableRow>
             ) : (
               users.map((user) => (
                 <TableRow key={user.id} className="group transition-colors hover:bg-slate-50 dark:hover:bg-slate-900">
-                  <TableCell className="font-medium text-slate-500">#{user.id}</TableCell>
-                  <TableCell className="font-medium text-slate-900 dark:text-slate-50">{user.name}</TableCell>
-                  <TableCell className="text-slate-600 dark:text-slate-400">{user.email}</TableCell>
+                  <TableCell className="text-center font-medium text-slate-500 font-mono text-xs">#{user.id}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-slate-900 dark:text-slate-50">{user.name}</span>
+                      <span className="text-xs text-slate-500">{user.email}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>{getRoleBadge(user.role)}</TableCell>
+                  <TableCell className="text-center">
+                    {getStatusBadge(user)}
+                  </TableCell>
+                  <TableCell className="text-right pr-6">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-slate-500 hover:text-primary hover:bg-primary/10"
+                      onClick={() => handleEditClick(user)}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))
             )}

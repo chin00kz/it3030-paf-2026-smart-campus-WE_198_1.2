@@ -25,6 +25,13 @@ public class AuthController {
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
+
+            if (!user.isActive()) {
+                // Auto-healing for existing users who were defaulted to false during schema update
+                user.setActive(true);
+                userRepository.save(user);
+            }
+
             // Using plain text comparison as requested for current dev stage
             if (user.getPassword().equals(request.getPassword())) {
                 AuthResponse response = AuthResponse.builder()
