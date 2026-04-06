@@ -22,13 +22,9 @@ import {
 } from "@/components/ui/sidebar"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
+import { useAuth } from "@/contexts/AuthContext"
 
 const data = {
-  user: {
-    name: "Admin User",
-    email: "admin@smartcampus.edu",
-    avatar: "/avatars/admin.jpg",
-  },
   navMain: [
     {
       title: "Dashboard",
@@ -69,6 +65,8 @@ const data = {
 }
 
 export function AppSidebar({ ...props }) {
+  const { user } = useAuth()
+  
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="p-4 border-b">
@@ -86,7 +84,7 @@ export function AppSidebar({ ...props }) {
       </SidebarContent>
       <SidebarSeparator />
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user || { name: "Guest", email: "", avatar: "" }} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

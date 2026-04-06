@@ -9,10 +9,12 @@ import BannedUsers from "@/pages/admin/banned-users"
 import Reports from "@/pages/admin/reports"
 import LoginPage from "@/pages/login"
 import { ProtectedRoute } from "@/components/protected-route"
+import { AuthProvider } from "@/contexts/AuthContext"
 
 function App() {
   return (
-    <Router>
+    <AuthProvider>
+      <Router>
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
@@ -40,7 +42,8 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </Router>
+      </Router>
+    </AuthProvider>
   )
 }
 
