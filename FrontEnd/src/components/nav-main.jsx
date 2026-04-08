@@ -22,9 +22,14 @@ export function NavMain({ items }) {
                 tooltip={item.title}
                 isActive={location.pathname === item.url}
                 render={
-                  <Link to={item.url} className="flex items-center gap-3">
+                  <Link to={item.url} className="flex items-center gap-3 w-full">
                     <item.icon className="h-5 w-5" />
-                    <span>{item.title}</span>
+                    <span className="flex-1">{item.title}</span>
+                    {item.badge && (
+                      <span className="bg-primary text-primary-foreground text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
+                        {item.badge}
+                      </span>
+                    )}
                   </Link>
                 }
               />

@@ -16,7 +16,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -28,11 +27,40 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { PlusCircle, UserPlus, Mail, Shield, Key, Edit2, ShieldAlert, ShieldCheck } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { 
+  UserPlus, 
+  Mail, 
+  Shield, 
+  Key, 
+  Edit2, 
+  Search, 
+  MoreVertical, 
+  Trash2, 
+  UserCheck, 
+  UserX,
+  History,
+  PlusCircle
+} from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export default function UserManagement() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState(null)
@@ -74,19 +102,19 @@ export default function UserManagement() {
     setFormData({
       name: user.name,
       email: user.email,
-      password: "", // Keep password empty unless changing
+      password: "",
       role: user.role,
     })
     setIsDialogOpen(true)
   }
 
-  const handleToggleStatus = async (user) => {
+  const handleStatusToggle = async (user, isChecked) => {
+    const newStatus = isChecked ? "ACTIVE" : "BANNED"
     try {
-      await userService.toggleUserStatus(user.id)
+      await userService.updateStatus(user.id, newStatus)
       fetchUsers()
     } catch (error) {
-      console.error("Failed to toggle status:", error)
-      alert("Failed to update user status.")
+      console.error("Failed to update status:", error)
     }
   }
 
@@ -103,7 +131,6 @@ export default function UserManagement() {
       fetchUsers()
     } catch (error) {
       console.error("Failed to save user:", error)
-      alert("Failed to save user. Please check if the email already exists.")
     }
   }
 
@@ -115,197 +142,148 @@ export default function UserManagement() {
 
   const getRoleBadge = (role) => {
     const styles = {
-      ADMIN: "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800",
-      MANAGER: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800",
-      TECHNICIAN: "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800",
-      USER: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700",
+      ADMIN: "bg-purple-100 text-purple-700 hover:bg-purple-100 border-none px-3 py-1 rounded-full text-[10px] font-black tracking-wider",
+      MANAGER: "bg-orange-100 text-orange-700 hover:bg-orange-100 border-none px-3 py-1 rounded-full text-[10px] font-black tracking-wider",
+      TECHNICIAN: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none px-3 py-1 rounded-full text-[10px] font-black tracking-wider",
+      USER: "bg-blue-50 text-blue-600 hover:bg-blue-50 border-none px-3 py-1 rounded-full text-[10px] font-black tracking-wider",
     }
     return (
-      <Badge variant="outline" className={styles[role] || styles.USER}>
+      <Badge className={styles[role] || styles.USER}>
         {role}
       </Badge>
     )
   }
 
-  const getStatusBadge = (user) => {
-    return user.active ? (
-      <Badge 
-        variant="outline" 
-        className="bg-emerald-50 text-emerald-700 border-emerald-200 cursor-pointer hover:bg-emerald-100 transition-colors gap-1"
-        onClick={() => handleToggleStatus(user)}
-      >
-        <ShieldCheck className="h-3 w-3" />
-        Active
-      </Badge>
-    ) : (
-      <Badge 
-        variant="outline" 
-        className="bg-rose-50 text-rose-700 border-rose-200 cursor-pointer hover:bg-rose-100 transition-colors gap-1"
-        onClick={() => handleToggleStatus(user)}
-      >
-        <ShieldAlert className="h-3 w-3" />
-        Banned
-      </Badge>
-    )
-  }
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">User Management</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Manage platform access and roles for students and staff.</p>
+    <div className="space-y-8 p-1">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-black tracking-tighter text-[#3b82f6] uppercase">User Management</h1>
+          <p className="text-slate-500 font-medium">View and manage all registered accounts on the platform.</p>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open)
-          if (!open) resetForm()
-        }}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90 shadow-sm gap-2">
-              <UserPlus className="h-4 w-4" />
-              New User
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <form onSubmit={handleSubmit}>
-              <DialogHeader>
-                <DialogTitle className="text-xl">{isEditing ? "Edit User Profile" : "Create New User"}</DialogTitle>
-                <DialogDescription>
-                  {isEditing ? "Update the account details for this user." : "Enter the details for the new platform user."}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-5 py-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-sm font-medium">Full Name</Label>
-                  <div className="relative">
-                    <PlusCircle className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                    <Input
-                      id="name"
-                      name="name"
-                      placeholder="John Doe"
-                      className="pl-10"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="john@example.com"
-                      className="pl-10"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="password" title={isEditing ? "Leave blank to keep current password" : ""} className="text-sm font-medium">
-                    {isEditing ? "Reset Password (Optional)" : "Initial Password"}
-                  </Label>
-                  <div className="relative">
-                    <Key className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      placeholder={isEditing ? "Leave blank to keep current" : "••••••••"}
-                      className="pl-10"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      required={!isEditing}
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="role" className="text-sm font-medium">System Role</Label>
-                  <div className="relative">
-                    <Shield className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 z-10" />
-                    <Select value={formData.role} onValueChange={handleRoleChange}>
-                      <SelectTrigger className="pl-10">
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="USER">User (Student/Staff)</SelectItem>
-                        <SelectItem value="TECHNICIAN">Technician</SelectItem>
-                        <SelectItem value="MANAGER">Manager</SelectItem>
-                        <SelectItem value="ADMIN">Administrator</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" className="bg-primary">
-                  {isEditing ? "Save Changes" : "Create Account"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-4">
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#3b82f6] transition-colors" />
+            <Input 
+              placeholder="Search users..." 
+              className="pl-10 h-11 w-[260px] bg-white border-slate-200 rounded-xl shadow-sm focus:ring-[#3b82f6] focus:border-[#3b82f6]"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Button 
+            className="h-11 px-6 rounded-xl font-bold bg-[#1e293b] hover:bg-[#0f172a] shadow-lg gap-2"
+            onClick={() => {
+              resetForm()
+              setIsDialogOpen(true)
+            }}
+          >
+            <UserPlus className="h-4 w-4" />
+            Add New User
+          </Button>
+        </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-950 rounded-xl border shadow-sm overflow-hidden">
+      {/* Users Table */}
+      <div className="bg-white rounded-2xl border-none shadow-[var(--unisync-card-shadow)] overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 dark:bg-slate-900/50">
-              <TableHead className="w-[80px] font-semibold text-slate-900 dark:text-slate-50 text-center">ID</TableHead>
-              <TableHead className="font-semibold text-slate-900 dark:text-slate-50">User Details</TableHead>
-              <TableHead className="font-semibold text-slate-900 dark:text-slate-50">System Role</TableHead>
-              <TableHead className="font-semibold text-slate-900 dark:text-slate-50 text-center">Status</TableHead>
-              <TableHead className="font-semibold text-slate-900 dark:text-slate-50 text-right pr-6">Actions</TableHead>
+            <TableRow className="bg-slate-50/50 hover:bg-slate-50/50">
+              <TableHead className="py-5 px-6 font-bold text-slate-400 text-xs uppercase tracking-wider">User</TableHead>
+              <TableHead className="py-5 px-6 font-bold text-slate-400 text-xs uppercase tracking-wider">SLIIT ID</TableHead>
+              <TableHead className="py-5 px-6 font-bold text-slate-400 text-xs uppercase tracking-wider">Role</TableHead>
+              <TableHead className="py-5 px-6 font-bold text-slate-400 text-xs uppercase tracking-wider text-center">Status</TableHead>
+              <TableHead className="py-5 px-6 font-bold text-slate-400 text-xs uppercase tracking-wider">Joined</TableHead>
+              <TableHead className="py-5 px-6 font-bold text-slate-400 text-xs uppercase tracking-wider text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-32 text-center text-slate-500">
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                    Loading users...
+                <TableCell colSpan={6} className="h-64 text-center">
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#3b82f6] border-t-transparent" />
+                    <p className="text-sm font-bold text-slate-400">Loading directory...</p>
                   </div>
                 </TableCell>
               </TableRow>
-            ) : users.length === 0 ? (
+            ) : filteredUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-32 text-center text-slate-500">
-                  No users found. Create your first user account to get started.
+                <TableCell colSpan={6} className="h-64 text-center">
+                  <p className="font-bold text-slate-400">No matching accounts found.</p>
                 </TableCell>
               </TableRow>
             ) : (
-              users.map((user) => (
-                <TableRow key={user.id} className="group transition-colors hover:bg-slate-50 dark:hover:bg-slate-900">
-                  <TableCell className="text-center font-medium text-slate-500 font-mono text-xs">#{user.id}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-slate-900 dark:text-slate-50">{user.name}</span>
-                      <span className="text-xs text-slate-500">{user.email}</span>
+              filteredUsers.map((user) => (
+                <TableRow key={user.id} className="group hover:bg-slate-50/50 transition-colors border-slate-100">
+                  <TableCell className="py-4 px-6">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-11 w-11 shadow-sm border border-slate-100">
+                        <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`} />
+                        <AvatarFallback className="bg-[#3b82f6]/10 text-[#3b82f6] font-black">
+                          {user.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className="font-black text-slate-800 leading-tight">{user.name}</span>
+                        <span className="text-xs font-bold text-slate-400">{user.email}</span>
+                      </div>
                     </div>
                   </TableCell>
-                  <TableCell>{getRoleBadge(user.role)}</TableCell>
-                  <TableCell className="text-center">
-                    {getStatusBadge(user)}
+                  <TableCell className="py-4 px-6">
+                    <span className="font-black text-slate-800 text-sm tracking-tighter">IT{23000000 + user.id}</span>
                   </TableCell>
-                  <TableCell className="text-right pr-6">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8 text-slate-500 hover:text-primary hover:bg-primary/10"
-                      onClick={() => handleEditClick(user)}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
+                  <TableCell className="py-4 px-6">
+                    {getRoleBadge(user.role)}
+                  </TableCell>
+                  <TableCell className="py-4 px-6 text-center">
+                    <div className="flex flex-col items-center gap-1.5">
+                      <Switch 
+                        checked={user.status === "ACTIVE"} 
+                        onCheckedChange={(checked) => handleStatusToggle(user, checked)}
+                      />
+                      <span className={cn(
+                        "text-[9px] font-black uppercase tracking-widest",
+                        user.status === "ACTIVE" ? "text-emerald-500" : "text-rose-500"
+                      )}>
+                        {user.status}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-4 px-6">
+                    <span className="text-sm font-bold text-slate-500 tracking-tight">3/21/2026</span>
+                  </TableCell>
+                  <TableCell className="py-4 px-6 text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-slate-400 hover:text-slate-900 group-hover:bg-white shadow-none transition-all">
+                          <MoreVertical className="h-5 w-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48 rounded-xl p-2 border-slate-100 shadow-xl">
+                        <DropdownMenuLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2 py-1.5">Actions</DropdownMenuLabel>
+                        <DropdownMenuItem className="rounded-lg gap-2 font-bold focus:bg-[#3b82f6]/5 focus:text-[#3b82f6] cursor-pointer" onClick={() => handleEditClick(user)}>
+                          <Edit2 className="h-4 w-4" />
+                          Edit Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="rounded-lg gap-2 font-bold focus:bg-[#3b82f6]/5 focus:text-[#3b82f6] cursor-pointer">
+                          <History className="h-4 w-4" />
+                          Activity Logs
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="bg-slate-50" />
+                        <DropdownMenuItem className="rounded-lg gap-2 font-bold text-rose-500 focus:bg-rose-50 focus:text-rose-600 cursor-pointer">
+                          <Trash2 className="h-4 w-4" />
+                          Delete Account
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
@@ -313,6 +291,98 @@ export default function UserManagement() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Management Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={(open) => {
+        setIsDialogOpen(open)
+        if (!open) resetForm()
+      }}>
+        <DialogContent className="sm:max-w-[425px] rounded-2xl border-none shadow-2xl">
+          <form onSubmit={handleSubmit}>
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-black tracking-tighter text-slate-800">
+                {isEditing ? "Edit Profile" : "Create Account"}
+              </DialogTitle>
+              <DialogDescription className="font-medium text-slate-500 underline decoration-[#3b82f6]/20 decoration-2 underline-offset-4">
+                {isEditing ? "Update account credentials and system access." : "Initialize a new user on the Smart Campus platform."}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-5 py-6">
+              <div className="grid gap-2">
+                <Label className="text-xs font-black text-slate-400 uppercase tracking-widest">Full Name</Label>
+                <div className="relative">
+                  <PlusCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
+                  <Input
+                    name="name"
+                    placeholder="John Doe"
+                    className="pl-10 h-11 rounded-xl bg-slate-50/50 border-slate-200"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label className="text-xs font-black text-slate-400 uppercase tracking-widest">Email Address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
+                  <Input
+                    name="email"
+                    type="email"
+                    placeholder="john@example.com"
+                    className="pl-10 h-11 rounded-xl bg-slate-50/50 border-slate-200"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                  {isEditing ? "New Password (Optional)" : "Security Key"}
+                </Label>
+                <div className="relative">
+                  <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
+                  <Input
+                    name="password"
+                    type="password"
+                    placeholder="••••••••"
+                    className="pl-10 h-11 rounded-xl bg-slate-50/50 border-slate-200"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required={!isEditing}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label className="text-xs font-black text-slate-400 uppercase tracking-widest">Platform Role</Label>
+                <div className="relative">
+                  <Shield className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 z-10" />
+                  <Select value={formData.role} onValueChange={handleRoleChange}>
+                    <SelectTrigger className="pl-10 h-11 rounded-xl bg-slate-50/50 border-slate-200">
+                      <SelectValue placeholder="Access Level" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl p-1">
+                      <SelectItem value="USER" className="rounded-lg font-bold">Student / Staff</SelectItem>
+                      <SelectItem value="TECHNICIAN" className="rounded-lg font-bold">Technician</SelectItem>
+                      <SelectItem value="MANAGER" className="rounded-lg font-bold">Facility Manager</SelectItem>
+                      <SelectItem value="ADMIN" className="rounded-lg font-bold">Global Administrator</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+            <DialogFooter className="gap-2">
+              <Button type="button" variant="outline" className="h-11 rounded-xl font-bold border-slate-200" onClick={() => setIsDialogOpen(false)}>
+                Discard
+              </Button>
+              <Button type="submit" className="h-11 rounded-xl font-bold bg-[#3b82f6] hover:bg-[#2563eb] shadow-lg shadow-blue-500/20 px-8">
+                {isEditing ? "Save Changes" : "Create Account"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

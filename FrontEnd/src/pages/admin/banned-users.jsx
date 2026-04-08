@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ShieldAlert, ShieldCheck, Mail, UserX } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function BannedUsers() {
   const [users, setUsers] = useState([])
@@ -20,7 +21,7 @@ export default function BannedUsers() {
     try {
       setLoading(true)
       const allUsers = await userService.getAllUsers()
-      setUsers(allUsers.filter(u => !u.active))
+      setUsers(allUsers.filter(u => u.status === "BANNED"))
     } catch (error) {
       console.error("Failed to fetch banned users:", error)
     } finally {
@@ -34,7 +35,7 @@ export default function BannedUsers() {
 
   const handleActivate = async (id) => {
     try {
-      await userService.toggleUserStatus(id)
+      await userService.updateStatus(id, "ACTIVE")
       fetchBannedUsers()
     } catch (error) {
       console.error("Failed to activate user:", error)
@@ -42,23 +43,22 @@ export default function BannedUsers() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-3">
-          <UserX className="h-8 w-8 text-rose-500" />
-          Banned Users
-        </h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1">Review and manage restricted accounts that have been blocked from platform access.</p>
+    <div className="space-y-8 p-1">
+      {/* Header Section */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-black tracking-tighter text-[#3b82f6] uppercase">Banned Users</h1>
+          <p className="text-slate-500 font-medium">Review and manage restricted accounts blocked from platform access.</p>
+        </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-950 rounded-xl border border-rose-100 dark:border-rose-900/30 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border-none shadow-[var(--unisync-card-shadow)] overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="bg-rose-50/50 hover:bg-rose-50/50 dark:bg-rose-900/10">
-              <TableHead className="w-[80px] font-semibold text-slate-900 dark:text-slate-50 text-center">ID</TableHead>
-              <TableHead className="font-semibold text-slate-900 dark:text-slate-50">User Details</TableHead>
-              <TableHead className="font-semibold text-slate-900 dark:text-slate-50 text-center">Status</TableHead>
-              <TableHead className="font-semibold text-slate-900 dark:text-slate-50 text-right pr-6">Action</TableHead>
+            <TableRow className="bg-rose-50/30 hover:bg-rose-50/30">
+              <TableHead className="py-5 px-6 font-bold text-slate-400 text-xs uppercase tracking-wider">User</TableHead>
+              <TableHead className="py-5 px-6 font-bold text-slate-400 text-xs uppercase tracking-wider text-center">Status</TableHead>
+              <TableHead className="py-5 px-6 font-bold text-slate-400 text-xs uppercase tracking-wider text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -83,30 +83,35 @@ export default function BannedUsers() {
               </TableRow>
             ) : (
               users.map((user) => (
-                <TableRow key={user.id} className="group transition-colors hover:bg-rose-50/30 dark:hover:bg-rose-900/5">
-                  <TableCell className="text-center font-medium text-slate-500 font-mono text-xs">#{user.id}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-slate-900 dark:text-slate-50">{user.name}</span>
-                      <div className="flex items-center gap-1 text-xs text-slate-500">
-                        <Mail className="h-3 w-3" />
-                        {user.email}
+                <TableRow key={user.id} className="group hover:bg-rose-50/30 transition-colors border-slate-100">
+                  <TableCell className="py-4 px-6">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-11 w-11 shadow-sm border border-slate-100">
+                        <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`} />
+                        <AvatarFallback className="bg-rose-100 text-rose-500 font-black">
+                          {user.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className="font-black text-slate-800 leading-tight">{user.name}</span>
+                        <span className="text-xs font-bold text-slate-400">{user.email}</span>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center">
-                    <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 gap-1 pr-2">
+                  <TableCell className="py-4 px-6 text-center">
+                    <Badge className="bg-rose-100 text-rose-700 hover:bg-rose-100 border-none px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest gap-1">
                       <ShieldAlert className="h-3 w-3" />
-                      Restricted
+                      Banned
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right pr-6">
+                  <TableCell className="py-4 px-6 text-right">
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-800"
+                      className="rounded-xl font-bold text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-800"
                       onClick={() => handleActivate(user.id)}
                     >
+                      <ShieldCheck className="h-4 w-4 mr-1.5" />
                       Restore Access
                     </Button>
                   </TableCell>

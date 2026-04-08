@@ -19,6 +19,7 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final smart_campus_backend.service.GoogleAuthService googleAuthService;
+    private final smart_campus_backend.service.AuditLogService auditLogService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
@@ -27,18 +28,33 @@ public class AuthController {
         if (userOptional.isPresent()) {
             User user = userOptional.get();
 
-            if (!user.isActive()) {
-                // Auto-healing for existing users who were defaulted to false during schema update
-                user.setActive(true);
-                userRepository.save(user);
+            if (user.getStatus() == smart_campus_backend.model.UserStatus.PENDING) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Your account is currently on hold. Please wait for an administrator to activate it.");
+            }
+            
+            if (user.getStatus() == smart_campus_backend.model.UserStatus.BANNED) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Your account has been banned. Please contact support.");
             }
 
             // Using plain text comparison as requested for current dev stage
             if (user.getPassword() != null && user.getPassword().equals(request.getPassword())) {
+                // Log the login
+                auditLogService.log(
+                    smart_campus_backend.model.AuditAction.LOGIN, 
+                    user.getName(), 
+                    user.getEmail(), 
+                    user.getId().toString(), 
+                    "User logged in via local credentials"
+                );
+
                 AuthResponse response = AuthResponse.builder()
+                        .id(user.getId())
                         .name(user.getName())
                         .email(user.getEmail())
                         .role(user.getRole())
+                        .status(user.getStatus().name())
                         .token("mock-jwt-token-" + user.getId())
                         .build();
                 return ResponseEntity.ok(response);
@@ -53,15 +69,31 @@ public class AuthController {
         try {
             User user = googleAuthService.verifyAndResolveUser(request.getCredential());
 
-            if (!user.isActive()) {
+            if (user.getStatus() == smart_campus_backend.model.UserStatus.PENDING) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body("Your account is currently on hold. Please wait for an administrator to activate your account.");
             }
+            
+            if (user.getStatus() == smart_campus_backend.model.UserStatus.BANNED) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Your account has been banned.");
+            }
+
+            // Log the login
+            auditLogService.log(
+                smart_campus_backend.model.AuditAction.LOGIN, 
+                user.getName(), 
+                user.getEmail(), 
+                user.getId().toString(), 
+                "User logged in via Google OAuth"
+            );
 
             AuthResponse response = AuthResponse.builder()
+                    .id(user.getId())
                     .name(user.getName())
                     .email(user.getEmail())
                     .role(user.getRole())
+                    .status(user.getStatus().name())
                     .token("mock-jwt-token-" + user.getId())
                     .build();
             return ResponseEntity.ok(response);

@@ -11,15 +11,34 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
     public User createUser(User user) {
-        // Defaulting active to true if not specified
-        if (!user.isActive()) user.setActive(true);
-        return userRepository.save(user);
+        // Defaulting status to PENDING if not specified
+        if (user.getStatus() == null) {
+            user.setStatus(smart_campus_backend.model.UserStatus.PENDING);
+        }
+        
+        User savedUser = userRepository.save(user);
+        
+        // If user is PENDING, notify all admins
+        if (savedUser.getStatus() == smart_campus_backend.model.UserStatus.PENDING) {
+            List<User> admins = userRepository.findByRole(smart_campus_backend.model.Role.ADMIN);
+            for (User admin : admins) {
+                notificationService.createNotification(
+                    admin.getId(),
+                    "New User Pending Approval",
+                    "A new user (" + savedUser.getName() + ") is on hold and needs review.",
+                    "/admin/user-management"
+                );
+            }
+        }
+        
+        return savedUser;
     }
 
     public User getUserById(Long id) {
@@ -39,9 +58,9 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public void toggleUserStatus(Long id) {
+    public void updateStatus(Long id, smart_campus_backend.model.UserStatus status) {
         User user = getUserById(id);
-        user.setActive(!user.isActive());
+        user.setStatus(status);
         userRepository.save(user);
     }
 }

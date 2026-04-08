@@ -11,6 +11,7 @@ import LoginPage from "@/pages/login"
 import ManagerDashboard from "@/pages/manager/dashboard"
 import TechnicianDashboard from "@/pages/technician/dashboard"
 import StudentDashboard from "@/pages/student/dashboard"
+import NotificationsPage from "@/pages/notifications"
 import { ProtectedRoute } from "@/components/protected-route"
 import { AuthProvider, useAuth } from "@/contexts/AuthContext"
 
@@ -51,6 +52,7 @@ function App() {
           <Route path="audit-logs" element={<AuditLogs />} />
           <Route path="banned-users" element={<BannedUsers />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="notifications" element={<NotificationsPage />} />
           <Route path="settings" element={<div>Settings Page</div>} />
         </Route>
 
@@ -65,6 +67,7 @@ function App() {
         >
           <Route index element={<ManagerDashboard />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="notifications" element={<NotificationsPage />} />
           <Route path="settings" element={<div>Settings Page</div>} />
         </Route>
 
@@ -78,6 +81,7 @@ function App() {
           }
         >
           <Route index element={<TechnicianDashboard />} />
+          <Route path="notifications" element={<NotificationsPage />} />
           <Route path="settings" element={<div>Settings Page</div>} />
         </Route>
 
@@ -91,6 +95,7 @@ function App() {
           }
         >
           <Route index element={<StudentDashboard />} />
+          <Route path="notifications" element={<NotificationsPage />} />
           <Route path="settings" element={<div>Settings Page</div>} />
         </Route>
 

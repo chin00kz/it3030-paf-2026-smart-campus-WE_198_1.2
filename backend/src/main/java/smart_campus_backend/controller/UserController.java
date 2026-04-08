@@ -15,6 +15,7 @@ import java.util.List;
 @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:5175"})
 public class UserController {
     private final UserService userService;
+    private final smart_campus_backend.service.AuditLogService auditLogService;
 
     @GetMapping
     public List<User> getAllUsers() {
@@ -23,17 +24,37 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody User user) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(user));
+        User createdUser = userService.createUser(user);
+        auditLogService.log(
+            smart_campus_backend.model.AuditAction.USER_CREATE, 
+            "ADMIN", "admin@smartcampus.com", 
+            createdUser.getId().toString(), 
+            "Created new user: " + createdUser.getEmail() + " with role " + createdUser.getRole()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
-        return ResponseEntity.ok(userService.updateUser(id, user));
+        User updated = userService.updateUser(id, user);
+        auditLogService.log(
+            smart_campus_backend.model.AuditAction.USER_UPDATE, 
+            "ADMIN", "admin@smartcampus.com", 
+            id.toString(), 
+            "Updated user profile for: " + updated.getEmail()
+        );
+        return ResponseEntity.ok(updated);
     }
 
-    @PatchMapping("/{id}/toggle-status")
-    public ResponseEntity<Void> toggleUserStatus(@PathVariable Long id) {
-        userService.toggleUserStatus(id);
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Void> updateStatus(@PathVariable Long id, @RequestParam smart_campus_backend.model.UserStatus status) {
+        userService.updateStatus(id, status);
+        auditLogService.log(
+            smart_campus_backend.model.AuditAction.USER_STATUS_CHANGE, 
+            "ADMIN", "admin@smartcampus.com", 
+            id.toString(), 
+            "Changed user status to: " + status
+        );
         return ResponseEntity.noContent().build();
     }
 }

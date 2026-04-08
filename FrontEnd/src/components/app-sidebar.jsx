@@ -9,8 +9,10 @@ import {
   ShieldCheck,
   FileText,
   UserX,
-  History
+  History,
+  Bell
 } from "lucide-react"
+import React from "react"
 
 import {
   Sidebar,
@@ -81,8 +83,13 @@ const data = {
       allowedRoles: ["ADMIN"],
     },
     {
+      title: "Notifications",
+      url: "notifications", // relative - will be resolved per role in component
+      icon: Bell,
+    },
+    {
       title: "Settings",
-      url: "/admin/settings",
+      url: "settings", // relative - will be resolved per role in component
       icon: Settings,
       allowedRoles: ["ADMIN", "MANAGER", "TECHNICIAN", "USER"],
     },
@@ -91,10 +98,36 @@ const data = {
 
 export function AppSidebar({ ...props }) {
   const { user } = useAuth()
+  const [unreadCount, setUnreadCount] = React.useState(0)
+
+  const fetchUnreadCount = async () => {
+    if (!user?.id) return
+    try {
+      const { notificationService } = await import("@/lib/api-client")
+      const count = await notificationService.getUnreadCount(user.id)
+      setUnreadCount(count)
+    } catch (error) {
+      console.error("Failed to fetch unread count:", error)
+    }
+  }
+
+  React.useEffect(() => {
+    fetchUnreadCount()
+    const interval = setInterval(fetchUnreadCount, 30000) // Poll every 30s
+    return () => clearInterval(interval)
+  }, [user?.id])
   
-  const filteredNavMain = data.navMain.filter(item => 
+  const rolePrefix = user?.role === "USER" ? "/dashboard" : `/${user?.role?.toLowerCase()}`
+
+  const filteredNavMain = data.navMain.filter(item =>
     !item.allowedRoles || item.allowedRoles.includes(user?.role)
-  )
+  ).map(item => ({
+    ...item,
+    // Resolve relative items (notifications, settings) against role prefix
+    // Absolute items (already start with /) are kept as-is
+    url: item.url.startsWith("/") ? item.url : `${rolePrefix}/${item.url}`,
+    badge: item.title === "Notifications" && unreadCount > 0 ? unreadCount : null
+  }))
 
   return (
     <Sidebar collapsible="icon" {...props}>

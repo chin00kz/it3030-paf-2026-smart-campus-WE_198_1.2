@@ -3,7 +3,6 @@ package smart_campus_backend.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import smart_campus_backend.model.Role;
 import smart_campus_backend.model.User;
 import smart_campus_backend.repository.UserRepository;
 
@@ -15,6 +14,7 @@ import java.util.Optional;
 public class GoogleAuthService {
 
     private final UserRepository userRepository;
+    private final UserService userService;
     private final org.springframework.web.client.RestTemplate restTemplate;
 
     @Value("${GOOGLE_CLIENT_ID:}")
@@ -79,11 +79,11 @@ public class GoogleAuthService {
                 .name(name)
                 .googleSub(googleSub)
                 .authProvider("GOOGLE")
-                .role(Role.USER)
-                .active(isSliitEmail)
+                .role(smart_campus_backend.model.Role.USER)
+                .status(isSliitEmail ? smart_campus_backend.model.UserStatus.ACTIVE : smart_campus_backend.model.UserStatus.PENDING)
                 .password("GOOGLE_OAUTH_MANAGED")
                 .build();
-
-        return userRepository.save(newUser);
+        
+        return userService.createUser(newUser);
     }
 }

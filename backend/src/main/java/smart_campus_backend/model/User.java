@@ -34,7 +34,8 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
+    @Enumerated(EnumType.STRING)
     @Builder.Default
-    @Column(nullable = false, columnDefinition = "boolean default true")
-    private boolean active = true;
+    @Column(nullable = false)
+    private UserStatus status = UserStatus.PENDING;
 }

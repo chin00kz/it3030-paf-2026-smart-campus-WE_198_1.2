@@ -5,93 +5,163 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card"
-import { Users, GraduationCap, Calendar, BookOpen } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Users, ShieldCheck, FileText, Activity, ChevronRight, Zap, ArrowRight, ShieldAlert } from "lucide-react"
 
 export default function AdminDashboard() {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+    <div className="space-y-8 p-1">
+      {/* Header Section */}
+      <div className="space-y-1">
+        <h1 className="text-3xl font-black tracking-tighter text-[#3b82f6] uppercase">Global Dashboard</h1>
+        <p className="text-slate-500 font-medium">Welcome back! Here's the pulse of Smart Campus today.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1,248</div>
-            <p className="text-xs text-muted-foreground">+12% from last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Faculty</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">92</div>
-            <p className="text-xs text-muted-foreground">+2 since last semester</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Courses</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">148</div>
-            <p className="text-xs text-muted-foreground">+4 new courses</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Daily Attendance</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">89%</div>
-            <p className="text-xs text-muted-foreground">+2% average</p>
-          </CardContent>
-        </Card>
+      {/* Stats Grid */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard 
+          title="TOTAL USERS" 
+          value="1,248" 
+          description="Registered students & staff" 
+          icon={Users} 
+          trend="+12% from last month"
+        />
+        <StatCard 
+          title="ACTIVE ADMINS" 
+          value="3" 
+          description="System administrators" 
+          icon={ShieldCheck} 
+        />
+        <StatCard 
+          title="PENDING REPORTS" 
+          value="8" 
+          description="Flagged content awaiting review" 
+          icon={FileText} 
+        />
+        <StatCard 
+          title="BANNED USERS" 
+          value="2" 
+          description="Accounts currently restricted" 
+          icon={ShieldAlert} 
+        />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+      {/* Main Content Layout */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+        {/* Activity Chart Area */}
+        <Card className="lg:col-span-4 border-none shadow-[var(--unisync-card-shadow)] bg-white">
           <CardHeader>
-            <CardTitle>Overview</CardTitle>
-            <CardDescription>Student activity over the last 30 days.</CardDescription>
+            <CardTitle className="text-xl font-bold text-slate-800">Moderation Activity</CardTitle>
+            <CardDescription className="text-sm font-medium">Activity overview from the last 24 hours.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px] flex items-center justify-center border-2 border-dashed rounded-lg bg-muted/50 text-muted-foreground">
-            Analytics Chart Placeholder
+          <CardContent className="h-[350px] relative overflow-hidden flex flex-col justify-end pb-8">
+            {/* Visual Chart Mockup */}
+            <div className="absolute inset-0 flex items-end px-6 pb-20 justify-between opacity-10 pointer-events-none">
+                {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
+                    <div key={i} className="w-12 bg-[#3b82f6] rounded-t-lg transition-all duration-500" style={{ height: `${h}%` }} />
+                ))}
+            </div>
+            
+            {/* SVG Area Chart Mockup */}
+            <svg className="w-full h-[200px] text-[#3b82f6] drop-shadow-lg" viewBox="0 0 400 100" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="currentColor" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path 
+                d="M0,80 Q50,20 100,50 T200,30 T300,60 T400,20 V100 H0 Z" 
+                fill="url(#chartGradient)" 
+              />
+              <path 
+                d="M0,80 Q50,20 100,50 T200,30 T300,60 T400,20" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="3" 
+                strokeLinecap="round"
+              />
+              <circle cx="200" cy="30" r="4" fill="white" stroke="currentColor" strokeWidth="2" />
+            </svg>
+
+            {/* Labels */}
+            <div className="flex justify-between mt-6 text-xs font-bold text-slate-400">
+              <span>Mon</span>
+              <span>Tue</span>
+              <span>Wed</span>
+              <span>Thu</span>
+              <span>Fri</span>
+              <span>Sat</span>
+              <span>Sun</span>
+            </div>
+
+            {/* Tooltip Mockup */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-4 -translate-y-12 bg-white shadow-xl rounded-lg p-3 border border-slate-100 hidden lg:block">
+              <p className="text-[10px] font-bold text-slate-400 mb-1">Thu</p>
+              <p className="text-xs font-black text-[#3b82f6]">actions : 25</p>
+            </div>
           </CardContent>
         </Card>
-        <Card className="col-span-3">
+
+        {/* Quick Actions Panel */}
+        <Card className="lg:col-span-3 border-none shadow-[var(--unisync-card-shadow)] bg-white flex flex-col">
           <CardHeader>
-            <CardTitle>Recent Registrations</CardTitle>
-            <CardDescription>New student applications pending review.</CardDescription>
+            <CardTitle className="text-xl font-bold text-slate-800">Quick Actions</CardTitle>
+            <CardDescription className="text-sm font-medium">Common management tasks.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                    S
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Student Name {i}</p>
-                    <p className="text-xs text-muted-foreground">Applied 2 hours ago</p>
-                  </div>
-                  <div className="text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-1 rounded">
-                    Pending
-                  </div>
-                </div>
-              ))}
+          <CardContent className="space-y-4 flex-1">
+            <QuickActionButton label="Review Pending Reports" />
+            <QuickActionButton label="Manage User Roles" />
+            <QuickActionButton label="View Banned Accounts" />
+            
+            <div className="pt-6 space-y-3 mt-auto">
+              <Button className="w-full bg-[#1e293b] hover:bg-[#0f172a] h-12 font-bold rounded-xl gap-2 shadow-lg">
+                <ShieldCheck className="h-4 w-4" />
+                Enable Maintenance Mode
+              </Button>
+              <Button className="w-full h-12 font-bold rounded-xl gap-2 shadow-lg text-white transition-opacity hover:opacity-90" style={{ background: 'var(--unisync-gradient)' }}>
+                Generate System Report
+              </Button>
             </div>
           </CardContent>
         </Card>
       </div>
+    </div>
+  )
+}
+
+function StatCard({ title, value, description, icon: Icon, trend }) {
+  return (
+    <Card className="border-none shadow-[var(--unisync-card-shadow)] bg-white transition-transform hover:scale-[1.02]">
+      <CardContent className="p-6">
+        <div className="flex justify-between items-start">
+          <div className="space-y-2">
+            <p className="text-[11px] font-black text-slate-400 tracking-wider uppercase">{title}</p>
+            <div className="text-4xl font-black text-slate-800 tracking-tighter">{value}</div>
+          </div>
+          <div className="h-12 w-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 shadow-inner">
+            <Icon className="h-6 w-6" />
+          </div>
+        </div>
+        <div className="mt-4 flex flex-col gap-1">
+          <p className="text-xs font-bold text-slate-500">{description}</p>
+          {trend && (
+            <div className="flex items-center gap-1 text-[10px] font-black text-pink-500">
+               <Zap className="h-3 w-3 fill-current" />
+               {trend}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function QuickActionButton({ label }) {
+  return (
+    <div className="group flex items-center justify-between p-4 rounded-xl border border-slate-50 hover:bg-slate-50/50 hover:border-slate-100 transition-all cursor-pointer">
+      <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900">{label}</span>
+      <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-slate-900 group-hover:translate-x-1 transition-all" />
     </div>
   )
 }
