@@ -4,5 +4,6 @@ public enum Role {
     ADMIN,
     USER,
     TECHNICIAN,
-    MANAGER
+    MANAGER,
+    STUDENT
 }

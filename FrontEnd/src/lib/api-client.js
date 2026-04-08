@@ -13,6 +13,7 @@ export const userService = {
   updateUser: (id, userData) => api.put(`/users/${id}`, userData).then((res) => res.data),
   toggleUserStatus: (id) => api.patch(`/users/${id}/toggle-status`).then((res) => res.data),
   login: (credentials) => api.post("/auth/login", credentials).then((res) => res.data),
+  loginWithGoogle: (credential) => api.post("/auth/google", { credential }).then((res) => res.data),
 }
 
 export default api

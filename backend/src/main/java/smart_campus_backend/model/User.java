@@ -20,8 +20,15 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = true, columnDefinition = "varchar(255) default null")
     private String password;
+
+    @Column(unique = true)
+    private String googleSub;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private String authProvider = "LOCAL";
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

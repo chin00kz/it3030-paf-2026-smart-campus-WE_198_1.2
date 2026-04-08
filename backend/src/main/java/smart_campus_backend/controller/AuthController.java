@@ -18,6 +18,7 @@ import java.util.Optional;
 public class AuthController {
 
     private final UserRepository userRepository;
+    private final smart_campus_backend.service.GoogleAuthService googleAuthService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
@@ -33,7 +34,7 @@ public class AuthController {
             }
 
             // Using plain text comparison as requested for current dev stage
-            if (user.getPassword().equals(request.getPassword())) {
+            if (user.getPassword() != null && user.getPassword().equals(request.getPassword())) {
                 AuthResponse response = AuthResponse.builder()
                         .name(user.getName())
                         .email(user.getEmail())
@@ -45,5 +46,27 @@ public class AuthController {
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<?> googleLogin(@RequestBody smart_campus_backend.dto.GoogleAuthRequest request) {
+        try {
+            User user = googleAuthService.verifyAndResolveUser(request.getCredential());
+
+            if (!user.isActive()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Your account is currently on hold. Please wait for an administrator to activate your account.");
+            }
+
+            AuthResponse response = AuthResponse.builder()
+                    .name(user.getName())
+                    .email(user.getEmail())
+                    .role(user.getRole())
+                    .token("mock-jwt-token-" + user.getId())
+                    .build();
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Google authentication failed: " + e.getMessage());
+        }
     }
 }
