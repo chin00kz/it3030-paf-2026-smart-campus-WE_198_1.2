@@ -16,6 +16,7 @@ import { GraduationCapIcon, Loader2 } from "lucide-react"
 
 function resolveDashboardPath(role) {
   switch (role) {
+    case "SUPER_ADMIN":
     case "ADMIN": return "/admin"
     case "MANAGER": return "/manager"
     case "TECHNICIAN": return "/technician"

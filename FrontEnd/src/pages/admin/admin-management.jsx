@@ -30,8 +30,8 @@ export default function AdminManagement() {
     try {
       setLoading(true)
       const data = await userService.getAllUsers()
-      // Filter for ADMIN role users
-      setAdmins(data.filter(user => user.role === "ADMIN"))
+      // Filter for ADMIN and SUPER_ADMIN role users
+      setAdmins(data.filter(user => user.role === "ADMIN" || user.role === "SUPER_ADMIN"))
     } catch (error) {
       console.error("Failed to fetch admins:", error)
     } finally {
@@ -98,9 +98,13 @@ export default function AdminManagement() {
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                           <span className="font-black text-slate-800 leading-tight">{admin.name}</span>
-                          {index === 0 && (
+                          {admin.role === "SUPER_ADMIN" ? (
+                            <Badge className="bg-amber-100 text-amber-600 hover:bg-amber-100 border-none px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm">
+                              SuperAdmin
+                            </Badge>
+                          ) : (
                             <Badge className="bg-rose-100 text-rose-600 hover:bg-rose-100 border-none px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest">
-                              Super
+                              Admin
                             </Badge>
                           )}
                         </div>
@@ -120,7 +124,12 @@ export default function AdminManagement() {
                     <span className="text-sm font-bold text-slate-500 tracking-tight">3/21/2026</span>
                   </TableCell>
                   <TableCell className="py-4 px-6 text-right">
-                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-all">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      disabled={admin.role === "SUPER_ADMIN"}
+                      className="h-9 w-9 rounded-full text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
                       <Trash2 className="h-5 w-5" />
                     </Button>
                   </TableCell>

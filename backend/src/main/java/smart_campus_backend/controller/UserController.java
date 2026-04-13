@@ -57,4 +57,17 @@ public class UserController {
         );
         return ResponseEntity.noContent().build();
     }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        smart_campus_backend.model.User user = userService.getUserById(id);
+        String email = user.getEmail();
+        userService.deleteUser(id);
+        auditLogService.log(
+            smart_campus_backend.model.AuditAction.USER_STATUS_CHANGE,
+            "ADMIN", "admin@smartcampus.com",
+            id.toString(),
+            "Deleted user account: " + email
+        );
+        return ResponseEntity.noContent().build();
+    }
 }

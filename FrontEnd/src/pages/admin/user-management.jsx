@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { userService } from "@/lib/api-client"
 import { Button } from "@/components/ui/button"
 import {
@@ -37,8 +38,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { 
@@ -61,14 +60,17 @@ export default function UserManagement() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const navigate = useNavigate()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null) // { id, name }
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     role: "USER",
+    status: "ACTIVE",
   })
 
   const fetchUsers = async () => {
@@ -137,11 +139,25 @@ export default function UserManagement() {
   const resetForm = () => {
     setIsEditing(false)
     setSelectedUserId(null)
-    setFormData({ name: "", email: "", password: "", role: "USER" })
+    setFormData({ name: "", email: "", password: "", role: "USER", status: "ACTIVE" })
+  }
+
+  const handleDeleteUser = async () => {
+    if (!deleteTarget) return
+    try {
+      await userService.deleteUser(deleteTarget.id)
+      setDeleteTarget(null)
+      fetchUsers()
+    } catch (error) {
+      console.error("Failed to delete user:", error)
+      alert(error.response?.data || "Failed to delete user.")
+      setDeleteTarget(null)
+    }
   }
 
   const getRoleBadge = (role) => {
     const styles = {
+      SUPER_ADMIN: "bg-amber-100 text-amber-700 hover:bg-amber-100 border-none px-3 py-1 rounded-full text-[10px] font-black tracking-widest shadow-sm",
       ADMIN: "bg-purple-100 text-purple-700 hover:bg-purple-100 border-none px-3 py-1 rounded-full text-[10px] font-black tracking-wider",
       MANAGER: "bg-orange-100 text-orange-700 hover:bg-orange-100 border-none px-3 py-1 rounded-full text-[10px] font-black tracking-wider",
       TECHNICIAN: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none px-3 py-1 rounded-full text-[10px] font-black tracking-wider",
@@ -149,7 +165,7 @@ export default function UserManagement() {
     }
     return (
       <Badge className={styles[role] || styles.USER}>
-        {role}
+        {role === "SUPER_ADMIN" ? "SuperAdmin" : role === "ADMIN" ? "Admin" : role}
       </Badge>
     )
   }
@@ -247,6 +263,7 @@ export default function UserManagement() {
                     <div className="flex flex-col items-center gap-1.5">
                       <Switch 
                         checked={user.status === "ACTIVE"} 
+                        disabled={user.role === "SUPER_ADMIN"}
                         onCheckedChange={(checked) => handleStatusToggle(user, checked)}
                       />
                       <span className={cn(
@@ -262,23 +279,34 @@ export default function UserManagement() {
                   </TableCell>
                   <TableCell className="py-4 px-6 text-right">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-slate-400 hover:text-slate-900 group-hover:bg-white shadow-none transition-all">
-                          <MoreVertical className="h-5 w-5" />
-                        </Button>
-                      </DropdownMenuTrigger>
+                      <DropdownMenuTrigger
+                        render={(props) => (
+                          <Button 
+                            {...props}
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-9 w-9 rounded-full text-slate-400 hover:text-slate-900 group-hover:bg-white shadow-none transition-all"
+                          >
+                            <MoreVertical className="h-5 w-5" />
+                          </Button>
+                        )}
+                      />
                       <DropdownMenuContent align="end" className="w-48 rounded-xl p-2 border-slate-100 shadow-xl">
-                        <DropdownMenuLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2 py-1.5">Actions</DropdownMenuLabel>
+                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2 py-1.5">Actions</div>
                         <DropdownMenuItem className="rounded-lg gap-2 font-bold focus:bg-[#3b82f6]/5 focus:text-[#3b82f6] cursor-pointer" onClick={() => handleEditClick(user)}>
                           <Edit2 className="h-4 w-4" />
                           Edit Profile
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="rounded-lg gap-2 font-bold focus:bg-[#3b82f6]/5 focus:text-[#3b82f6] cursor-pointer">
+                        <DropdownMenuItem className="rounded-lg gap-2 font-bold focus:bg-[#3b82f6]/5 focus:text-[#3b82f6] cursor-pointer" onClick={() => navigate("/admin/audit-logs")}>
                           <History className="h-4 w-4" />
                           Activity Logs
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-slate-50" />
-                        <DropdownMenuItem className="rounded-lg gap-2 font-bold text-rose-500 focus:bg-rose-50 focus:text-rose-600 cursor-pointer">
+                        <div className="my-1 h-px bg-slate-100" />
+                        <DropdownMenuItem 
+                          disabled={user.role === "SUPER_ADMIN"}
+                          onClick={() => user.role !== "SUPER_ADMIN" && setDeleteTarget({ id: user.id, name: user.name })}
+                          className="rounded-lg gap-2 font-bold text-rose-500 focus:bg-rose-50 focus:text-rose-600 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
                           <Trash2 className="h-4 w-4" />
                           Delete Account
                         </DropdownMenuItem>
@@ -330,9 +358,10 @@ export default function UserManagement() {
                     name="email"
                     type="email"
                     placeholder="john@example.com"
-                    className="pl-10 h-11 rounded-xl bg-slate-50/50 border-slate-200"
+                    className="pl-10 h-11 rounded-xl bg-slate-50/50 border-slate-200 disabled:opacity-70"
                     value={formData.email}
                     onChange={handleInputChange}
+                    disabled={isEditing}
                     required
                   />
                 </div>
@@ -381,6 +410,40 @@ export default function UserManagement() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent className="sm:max-w-[380px] rounded-2xl border-none shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black tracking-tighter text-slate-800">
+              Delete Account
+            </DialogTitle>
+            <DialogDescription className="font-medium text-slate-500">
+              Are you sure you want to permanently delete{" "}
+              <span className="font-black text-slate-800">{deleteTarget?.name}</span>?
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 rounded-xl font-bold border-slate-200"
+              onClick={() => setDeleteTarget(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="h-11 rounded-xl font-bold bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-500/20 px-8"
+              onClick={handleDeleteUser}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

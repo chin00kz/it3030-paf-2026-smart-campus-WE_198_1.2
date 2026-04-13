@@ -11,4 +11,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     Optional<User> findByGoogleSub(String googleSub);
     java.util.List<User> findByRole(smart_campus_backend.model.Role role);
+    long countByRole(smart_campus_backend.model.Role role);
+    long countByStatus(smart_campus_backend.model.UserStatus status);
 }

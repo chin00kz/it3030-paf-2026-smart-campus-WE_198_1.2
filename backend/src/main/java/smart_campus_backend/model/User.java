@@ -27,15 +27,15 @@ public class User {
     private String googleSub;
 
     @Builder.Default
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private String authProvider = "LOCAL";
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private Role role;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private UserStatus status = UserStatus.PENDING;
 }

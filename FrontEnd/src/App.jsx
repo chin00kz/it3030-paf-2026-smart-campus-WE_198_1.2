@@ -12,6 +12,8 @@ import ManagerDashboard from "@/pages/manager/dashboard"
 import TechnicianDashboard from "@/pages/technician/dashboard"
 import StudentDashboard from "@/pages/student/dashboard"
 import NotificationsPage from "@/pages/notifications"
+import MaintenancePage from "@/pages/maintenance"
+import SettingsPage from "@/pages/admin/settings"
 import { ProtectedRoute } from "@/components/protected-route"
 import { AuthProvider, useAuth } from "@/contexts/AuthContext"
 
@@ -21,6 +23,7 @@ function RootRedirect() {
   if (!user) return <Navigate to="/login" replace />
   
   switch (user.role) {
+    case "SUPER_ADMIN":
     case "ADMIN": return <Navigate to="/admin" replace />
     case "MANAGER": return <Navigate to="/manager" replace />
     case "TECHNICIAN": return <Navigate to="/technician" replace />
@@ -29,18 +32,23 @@ function RootRedirect() {
 }
 
 function App() {
+  const [isMaintenance, setIsMaintenance] = import.meta.env.MODE === 'development' ? [false, () => {}] : [false, () => {}] // Initial state
+  // We'll actually use a hook or effect here if needed, but for now let's use the ProtectedRoute logic
+  // and a global interceptor in the background.
+  
   return (
     <AuthProvider>
       <Router>
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/maintenance" element={<MaintenancePage />} />
         
         {/* Admin Routes */}
         <Route 
           path="/admin" 
           element={
-            <ProtectedRoute allowedRoles={["ADMIN"]}>
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
               <AdminLayout />
             </ProtectedRoute>
           }
@@ -53,7 +61,7 @@ function App() {
           <Route path="banned-users" element={<BannedUsers />} />
           <Route path="reports" element={<Reports />} />
           <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="settings" element={<div>Settings Page</div>} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
 
         {/* Manager Routes */}
@@ -68,7 +76,7 @@ function App() {
           <Route index element={<ManagerDashboard />} />
           <Route path="reports" element={<Reports />} />
           <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="settings" element={<div>Settings Page</div>} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
 
         {/* Technician Routes */}
@@ -82,7 +90,7 @@ function App() {
         >
           <Route index element={<TechnicianDashboard />} />
           <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="settings" element={<div>Settings Page</div>} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
 
         {/* Student/User Routes */}
@@ -96,7 +104,7 @@ function App() {
         >
           <Route index element={<StudentDashboard />} />
           <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="settings" element={<div>Settings Page</div>} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
 
         {/* Catch all - redirect home or based on role */}

@@ -32,25 +32,25 @@ const data = {
       title: "Dashboard",
       url: "/admin",
       icon: LayoutDashboard,
-      allowedRoles: ["ADMIN"],
+      allowedRoles: ["ADMIN", "SUPER_ADMIN"],
     },
     {
       title: "User Management",
       url: "/admin/user-management",
       icon: Users,
-      allowedRoles: ["ADMIN"],
+      allowedRoles: ["ADMIN", "SUPER_ADMIN"],
     },
     {
       title: "Admin Management",
       url: "/admin/admin-management",
       icon: ShieldCheck,
-      allowedRoles: ["ADMIN"],
+      allowedRoles: ["ADMIN", "SUPER_ADMIN"],
     },
     {
       title: "Banned Users",
       url: "/admin/banned-users",
       icon: UserX,
-      allowedRoles: ["ADMIN"],
+      allowedRoles: ["ADMIN", "SUPER_ADMIN"],
     },
     {
       title: "Manager Tools",
@@ -74,13 +74,13 @@ const data = {
       title: "Reports",
       url: "/admin/reports",
       icon: FileText,
-      allowedRoles: ["ADMIN", "MANAGER"],
+      allowedRoles: ["ADMIN", "SUPER_ADMIN", "MANAGER"],
     },
     {
       title: "Audit Logs",
       url: "/admin/audit-logs",
       icon: History,
-      allowedRoles: ["ADMIN"],
+      allowedRoles: ["ADMIN", "SUPER_ADMIN"],
     },
     {
       title: "Notifications",
@@ -91,7 +91,7 @@ const data = {
       title: "Settings",
       url: "settings", // relative - will be resolved per role in component
       icon: Settings,
-      allowedRoles: ["ADMIN", "MANAGER", "TECHNICIAN", "USER"],
+      allowedRoles: ["ADMIN", "SUPER_ADMIN", "MANAGER", "TECHNICIAN", "USER"],
     },
   ],
 }
@@ -117,7 +117,9 @@ export function AppSidebar({ ...props }) {
     return () => clearInterval(interval)
   }, [user?.id])
   
-  const rolePrefix = user?.role === "USER" ? "/dashboard" : `/${user?.role?.toLowerCase()}`
+  const rolePrefix = user?.role === "USER" ? "/dashboard" : 
+                     user?.role === "SUPER_ADMIN" ? "/admin" : 
+                     `/${user?.role?.toLowerCase()}`
 
   const filteredNavMain = data.navMain.filter(item =>
     !item.allowedRoles || item.allowedRoles.includes(user?.role)

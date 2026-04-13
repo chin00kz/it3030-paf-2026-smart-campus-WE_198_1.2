@@ -14,12 +14,13 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:5175"})
 public class AuthController {
 
     private final UserRepository userRepository;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private final smart_campus_backend.service.GoogleAuthService googleAuthService;
     private final smart_campus_backend.service.AuditLogService auditLogService;
+    private final smart_campus_backend.service.SystemSettingService systemSettingService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
@@ -27,6 +28,14 @@ public class AuthController {
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
+
+            // Maintenance mode check
+            if (systemSettingService.isMaintenanceMode() && 
+                user.getRole() != smart_campus_backend.model.Role.ADMIN && 
+                user.getRole() != smart_campus_backend.model.Role.SUPER_ADMIN) {
+                return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                        .body("The system is currently undergoing maintenance. Please try again later.");
+            }
 
             if (user.getStatus() == smart_campus_backend.model.UserStatus.PENDING) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -38,8 +47,8 @@ public class AuthController {
                         .body("Your account has been banned. Please contact support.");
             }
 
-            // Using plain text comparison as requested for current dev stage
-            if (user.getPassword() != null && user.getPassword().equals(request.getPassword())) {
+            // Using BCrypt password matching
+            if (user.getPassword() != null && passwordEncoder.matches(request.getPassword(), user.getPassword())) {
                 // Log the login
                 auditLogService.log(
                     smart_campus_backend.model.AuditAction.LOGIN, 
@@ -68,6 +77,14 @@ public class AuthController {
     public ResponseEntity<?> googleLogin(@RequestBody smart_campus_backend.dto.GoogleAuthRequest request) {
         try {
             User user = googleAuthService.verifyAndResolveUser(request.getCredential());
+
+            // Maintenance mode check
+            if (systemSettingService.isMaintenanceMode() && 
+                user.getRole() != smart_campus_backend.model.Role.ADMIN && 
+                user.getRole() != smart_campus_backend.model.Role.SUPER_ADMIN) {
+                return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                        .body("The system is currently undergoing maintenance. Please try again later.");
+            }
 
             if (user.getStatus() == smart_campus_backend.model.UserStatus.PENDING) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)

@@ -57,8 +57,7 @@ public class GoogleAuthService {
             throw new RuntimeException("Incomplete user data from Google");
         }
 
-        // 2. Domain check for 'On Hold' policy
-        boolean isSliitEmail = email.endsWith("@sliit.lk");
+        // 2. Domain checks or other policies can go here if needed in future
 
         // 3. Resolve user
         Optional<User> userBySub = userRepository.findByGoogleSub(googleSub);
@@ -80,7 +79,7 @@ public class GoogleAuthService {
                 .googleSub(googleSub)
                 .authProvider("GOOGLE")
                 .role(smart_campus_backend.model.Role.USER)
-                .status(isSliitEmail ? smart_campus_backend.model.UserStatus.ACTIVE : smart_campus_backend.model.UserStatus.PENDING)
+                .status(smart_campus_backend.model.UserStatus.PENDING)
                 .password("GOOGLE_OAUTH_MANAGED")
                 .build();
         
