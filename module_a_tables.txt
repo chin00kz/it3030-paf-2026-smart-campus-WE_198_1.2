@@ -1,0 +1,17 @@
+-- Module A: Facilities & Assets Catalogue Database Tables
+
+-- Table Name: resources
+-- Description: Stores all bookable facilities and equipment metadata.
+
+CREATE TABLE resources (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL,                  -- LECTURE_HALL, LAB, MEETING_ROOM, EQUIPMENT
+    capacity INT,
+    location VARCHAR(255),
+    availability_start_time TIME,
+    availability_end_time TIME,
+    status VARCHAR(50) NOT NULL,                -- ACTIVE, OUT_OF_SERVICE
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
