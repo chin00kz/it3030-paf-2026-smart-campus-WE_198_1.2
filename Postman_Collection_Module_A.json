@@ -1,12 +1,13 @@
 {
 	"info": {
 		"_postman_id": "b34e567b-1234-abcd-9876-0f81d1234567",
-		"name": "Smart Campus - Module A (Resources)",
+		"name": "Smart Campus - Module A (Facilities & Assets)",
+		"description": "Comprehensive API testing collection for Module A: Facilities & Assets Catalogue",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "Create Resource",
+			"name": "Create Resource - Valid",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -17,7 +18,127 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\": \"Main Computer Lab\",\n    \"type\": \"LAB\",\n    \"capacity\": 50,\n    \"location\": \"Building A, Floor 2\",\n    \"status\": \"ACTIVE\",\n    \"availabilityStartTime\": \"08:00:00\",\n    \"availabilityEndTime\": \"17:00:00\"\n}"
+					"raw": "{\n    \"name\": \"Main Computer Lab\",\n    \"type\": \"LAB\",\n    \"capacity\": 50,\n    \"location\": \"Building A, Floor 2\",\n    \"status\": \"ACTIVE\",\n    \"availabilityStartTime\": \"08:00\",\n    \"availabilityEndTime\": \"17:00\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/resources",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources" ]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Resource - Lecture Hall",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Lecture Hall A101\",\n    \"type\": \"LECTURE_HALL\",\n    \"capacity\": 200,\n    \"location\": \"Building B, Floor 1\",\n    \"status\": \"ACTIVE\",\n    \"availabilityStartTime\": \"09:00\",\n    \"availabilityEndTime\": \"18:00\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/resources",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources" ]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Resource - Meeting Room",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Conference Room 301\",\n    \"type\": \"MEETING_ROOM\",\n    \"capacity\": 20,\n    \"location\": \"Building C, Floor 3\",\n    \"status\": \"ACTIVE\",\n    \"availabilityStartTime\": \"08:00\",\n    \"availabilityEndTime\": \"20:00\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/resources",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources" ]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Resource - Equipment",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"4K Projector\",\n    \"type\": \"EQUIPMENT\",\n    \"capacity\": 100,\n    \"location\": \"Equipment Store, Building A\",\n    \"status\": \"ACTIVE\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/resources",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources" ]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Resource - Invalid (Missing Name)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"\",\n    \"type\": \"LAB\",\n    \"capacity\": 50,\n    \"location\": \"Building A\",\n    \"status\": \"ACTIVE\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/resources",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources" ]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Resource - Invalid (Invalid Capacity)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Test Lab\",\n    \"type\": \"LAB\",\n    \"capacity\": 0,\n    \"location\": \"Building A\",\n    \"status\": \"ACTIVE\"\n}"
 				},
 				"url": {
 					"raw": "http://localhost:8080/api/resources",
@@ -35,12 +156,326 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/api/resources?type=LAB",
+					"raw": "http://localhost:8080/api/resources?page=0&size=10",
 					"protocol": "http",
 					"host": [ "localhost" ],
 					"port": "8080",
 					"path": [ "api", "resources" ],
-					"query": [ { "key": "type", "value": "LAB" } ]
+					"query": [ 
+						{ "key": "page", "value": "0" },
+						{ "key": "size", "value": "10" }
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Resources - Filter by Type",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/resources?type=LAB&page=0&size=10",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources" ],
+					"query": [ 
+						{ "key": "type", "value": "LAB" },
+						{ "key": "page", "value": "0" },
+						{ "key": "size", "value": "10" }
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Resources - Filter by Capacity",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/resources?capacity=100&page=0&size=10",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources" ],
+					"query": [ 
+						{ "key": "capacity", "value": "100" },
+						{ "key": "page", "value": "0" },
+						{ "key": "size", "value": "10" }
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Resources - Filter by Location",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/resources?location=Building A&page=0&size=10",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources" ],
+					"query": [ 
+						{ "key": "location", "value": "Building A" },
+						{ "key": "page", "value": "0" },
+						{ "key": "size", "value": "10" }
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Resources - Filter by Name",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/resources?name=Lab&page=0&size=10",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources" ],
+					"query": [ 
+						{ "key": "name", "value": "Lab" },
+						{ "key": "page", "value": "0" },
+						{ "key": "size", "10" }
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Resources - Filter by Status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/resources?status=ACTIVE&page=0&size=10",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources" ],
+					"query": [ 
+						{ "key": "status", "value": "ACTIVE" },
+						{ "key": "page", "value": "0" },
+						{ "key": "size", "value": "10" }
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Resources - Multiple Filters",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/resources?type=LAB&capacity=30&location=Building A&page=0&size=10",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources" ],
+					"query": [ 
+						{ "key": "type", "value": "LAB" },
+						{ "key": "capacity", "value": "30" },
+						{ "key": "location", "value": "Building A" },
+						{ "key": "page", "value": "0" },
+						{ "key": "size", "value": "10" }
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Resource by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/resources/1",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources", "1" ]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Resource by ID - Not Found",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/resources/999999",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources", "999999" ]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Resource",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Updated Lab Name\",\n    \"type\": \"LAB\",\n    \"capacity\": 75,\n    \"location\": \"Building A, Floor 3\",\n    \"status\": \"ACTIVE\",\n    \"availabilityStartTime\": \"08:30\",\n    \"availabilityEndTime\": \"17:30\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/resources/1",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources", "1" ]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Resource - Out of Service",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Main Computer Lab\",\n    \"type\": \"LAB\",\n    \"capacity\": 50,\n    \"location\": \"Building A, Floor 2\",\n    \"status\": \"OUT_OF_SERVICE\",\n    \"availabilityStartTime\": \"08:00\",\n    \"availabilityEndTime\": \"17:00\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/resources/1",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources", "1" ]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Resource - Invalid (Not Found)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Test\",\n    \"type\": \"LAB\",\n    \"capacity\": 50,\n    \"location\": \"Building A\",\n    \"status\": \"ACTIVE\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/resources/999999",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources", "999999" ]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Resource",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/resources/1",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources", "1" ]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Resource - Not Found",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/resources/999999",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources", "999999" ]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Pagination - Page 1",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/resources?page=0&size=5",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources" ],
+					"query": [ 
+						{ "key": "page", "value": "0" },
+						{ "key": "size", "value": "5" }
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Pagination - Page 2",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/resources?page=1&size=5",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources" ],
+					"query": [ 
+						{ "key": "page", "value": "1" },
+						{ "key": "size", "value": "5" }
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Pagination - Custom Page Size",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/resources?page=0&size=20",
+					"protocol": "http",
+					"host": [ "localhost" ],
+					"port": "8080",
+					"path": [ "api", "resources" ],
+					"query": [ 
+						{ "key": "page", "value": "0" },
+						{ "key": "size", "value": "20" }
+					]
 				}
 			},
 			"response": []
