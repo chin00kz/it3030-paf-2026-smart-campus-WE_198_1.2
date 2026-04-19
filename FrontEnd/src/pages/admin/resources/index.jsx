@@ -6,7 +6,7 @@ import { Plus, Edit, Trash2, Search, X, AlertCircle, CheckCircle, Loader } from 
 
 export default function ResourcesPage() {
     const [resources, setResources] = useState([]);
-    const [filters, setFilters] = useState({ type: "", capacity: "", location: "", name: "" });
+    const [filters, setFilters] = useState({ type: "", capacity: "", location: "", name: "", status: "" });
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState(null);
     const [formErrors, setFormErrors] = useState({});
@@ -19,7 +19,7 @@ export default function ResourcesPage() {
     const [deletingId, setDeletingId] = useState(null);
 
     const resourceTypes = ["LECTURE_HALL", "LAB", "MEETING_ROOM", "EQUIPMENT"];
-    const resourceStatuses = ["ACTIVE", "OUT_OF_SERVICE"];
+    const resourceStatuses = ["AVAILABLE", "UNAVAILABLE", "BOOKED"];
 
     useEffect(() => {
         loadResources();
@@ -78,7 +78,7 @@ export default function ResourcesPage() {
             type: "LECTURE_HALL", 
             capacity: 1, 
             location: "", 
-            status: "ACTIVE", 
+            status: "AVAILABLE", 
             availabilityStartTime: "08:00", 
             availabilityEndTime: "18:00" 
         });
@@ -235,6 +235,16 @@ export default function ResourcesPage() {
                             className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm font-medium text-gray-700">Status</label>
+                        <select 
+                            name="status" value={filters.status} onChange={handleFilterChange}
+                            className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">All Statuses</option>
+                            {resourceStatuses.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -276,8 +286,12 @@ export default function ResourcesPage() {
                                         <td className="px-4 py-3.5 text-gray-700">{r.capacity}</td>
                                         <td className="px-4 py-3.5 text-gray-700">{r.location}</td>
                                         <td className="px-4 py-3.5">
-                                            <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${r.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                                {r.status}
+                                            <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
+                                                r.status === 'AVAILABLE' ? 'bg-green-100 text-green-700' : 
+                                                r.status === 'BOOKED' ? 'bg-yellow-100 text-yellow-700' : 
+                                                'bg-red-100 text-red-700'
+                                            }`}>
+                                                {r.status === 'AVAILABLE' ? 'Available' : r.status === 'BOOKED' ? 'Booked' : 'Unavailable'}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3.5 flex justify-end gap-2">
@@ -441,7 +455,11 @@ export default function ResourcesPage() {
                                     onChange={handleFormChange} 
                                     className={`w-full border rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 ${formErrors.status ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
                                 >
-                                    {resourceStatuses.map(s => <option key={s} value={s}>{s}</option>)}
+                                    {resourceStatuses.map(s => (
+                                        <option key={s} value={s}>
+                                            {s === 'AVAILABLE' ? 'Available' : s === 'BOOKED' ? 'Booked' : 'Unavailable'}
+                                        </option>
+                                    ))}
                                 </select>
                                 {formErrors.status && <p className="text-xs text-red-600">{formErrors.status}</p>}
                             </div>

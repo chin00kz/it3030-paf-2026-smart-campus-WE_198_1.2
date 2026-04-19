@@ -50,7 +50,7 @@ public class ResourceServiceTest {
         resource.setLocation("Building A");
         resource.setAvailabilityStartTime(LocalTime.of(8, 0));
         resource.setAvailabilityEndTime(LocalTime.of(18, 0));
-        resource.setStatus(ResourceStatus.ACTIVE);
+        resource.setStatus(ResourceStatus.AVAILABLE);
         resource.setCreatedAt(LocalDateTime.now());
         resource.setUpdatedAt(LocalDateTime.now());
 
@@ -61,7 +61,7 @@ public class ResourceServiceTest {
         resourceDTO.setLocation("Building A");
         resourceDTO.setAvailabilityStartTime(LocalTime.of(8, 0));
         resourceDTO.setAvailabilityEndTime(LocalTime.of(18, 0));
-        resourceDTO.setStatus(ResourceStatus.ACTIVE);
+        resourceDTO.setStatus(ResourceStatus.AVAILABLE);
     }
 
     @Test
@@ -133,7 +133,7 @@ public class ResourceServiceTest {
         updateDTO.setType(ResourceType.LAB);
         updateDTO.setCapacity(50);
         updateDTO.setLocation("Building B");
-        updateDTO.setStatus(ResourceStatus.ACTIVE);
+        updateDTO.setStatus(ResourceStatus.AVAILABLE);
 
         when(resourceRepository.findById(1L)).thenReturn(Optional.of(resource));
         when(resourceRepository.save(any(Resource.class))).thenReturn(resource);
@@ -177,7 +177,7 @@ public class ResourceServiceTest {
         resource2.setType(ResourceType.LECTURE_HALL);
         resource2.setCapacity(100);
         resource2.setLocation("Building B");
-        resource2.setStatus(ResourceStatus.ACTIVE);
+        resource2.setStatus(ResourceStatus.AVAILABLE);
 
         Page<Resource> page = new PageImpl<>(Arrays.asList(resource, resource2));
         when(resourceRepository.searchResources(any(), any(), any(), any(), any(), any(Pageable.class)))
@@ -221,13 +221,13 @@ public class ResourceServiceTest {
     @Test
     @DisplayName("Should get resources by status")
     void testGetResourcesByStatus() {
-        when(resourceRepository.findByStatus(ResourceStatus.ACTIVE))
+        when(resourceRepository.findByStatus(ResourceStatus.AVAILABLE))
                 .thenReturn(Arrays.asList(resource));
 
-        var result = resourceService.getResourcesByStatus(ResourceStatus.ACTIVE);
+        var result = resourceService.getResourcesByStatus(ResourceStatus.AVAILABLE);
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(resourceRepository, times(1)).findByStatus(ResourceStatus.ACTIVE);
+        verify(resourceRepository, times(1)).findByStatus(ResourceStatus.AVAILABLE);
     }
 
     @Test

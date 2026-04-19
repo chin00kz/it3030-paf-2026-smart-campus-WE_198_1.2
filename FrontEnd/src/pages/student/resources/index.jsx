@@ -1,16 +1,29 @@
 import { useState, useEffect } from "react";
 import { getResources, getErrorMessage } from "@/api/resourceApi";
-import { Search, AlertCircle, Loader, MapPin, Users, Clock, X } from "lucide-react";
+import { createBooking } from "@/api/bookingApi";
+import { Search, AlertCircle, Loader, MapPin, Users, Clock, X, Calendar, Plus } from "lucide-react";
 
 export default function StudentResourcesPage() {
     const [resources, setResources] = useState([]);
-    const [filters, setFilters] = useState({ type: "", capacity: "", location: "", name: "" });
+    const [filters, setFilters] = useState({ type: "", capacity: "", location: "", name: "", status: "" });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [pagination, setPagination] = useState({ page: 0, size: 10, totalPages: 0, totalElements: 0 });
     const [selectedResource, setSelectedResource] = useState(null);
 
     const resourceTypes = ["LECTURE_HALL", "LAB", "MEETING_ROOM", "EQUIPMENT"];
+    const resourceStatuses = ["AVAILABLE", "UNAVAILABLE", "BOOKED"];
+
+    const [bookingData, setBookingData] = useState({
+        bookedByName: "",
+        bookedByEmail: "",
+        bookingDate: new Date().toISOString().split('T')[0],
+        startTime: "09:00",
+        endTime: "10:00",
+        purpose: ""
+    });
+    const [bookingLoading, setBookingLoading] = useState(false);
+    const [showBookingModal, setShowBookingModal] = useState(false);
 
     useEffect(() => {
         loadResources();
@@ -42,9 +55,30 @@ export default function StudentResourcesPage() {
         setPagination(prev => ({ ...prev, page: 0 }));
     };
 
-    const handlePageChange = (newPage) => {
-        if (newPage >= 0 && newPage < pagination.totalPages) {
-            setPagination(prev => ({ ...prev, page: newPage }));
+    const handleBookingChange = (e) => {
+        const { name, value } = e.target;
+        setBookingData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleBookingSubmit = async (e) => {
+        e.preventDefault();
+        setBookingLoading(true);
+        setError(null);
+        try {
+            await createBooking({
+                ...bookingData,
+                resourceId: selectedResource.id,
+                startTime: bookingData.startTime + ":00", // Format for Backend LocalTime
+                endTime: bookingData.endTime + ":00"
+            });
+            setShowBookingModal(false);
+            setSelectedResource(null);
+            loadResources(); // Refresh list to show BOOKED status
+            alert("Booking request submitted successfully!");
+        } catch (error) {
+            setError(getErrorMessage(error));
+        } finally {
+            setBookingLoading(false);
         }
     };
 
@@ -89,7 +123,7 @@ export default function StudentResourcesPage() {
             {/* Filters */}
             <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 space-y-4">
                 <h3 className="font-semibold text-gray-900">Search & Filter</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div className="flex flex-col gap-1">
                         <label className="text-sm font-medium text-gray-700">Name</label>
                         <input 
@@ -136,6 +170,18 @@ export default function StudentResourcesPage() {
                             className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm font-medium text-gray-700">Status</label>
+                        <select 
+                            name="status" 
+                            value={filters.status} 
+                            onChange={handleFilterChange}
+                            className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">All Statuses</option>
+                            {resourceStatuses.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -166,8 +212,12 @@ export default function StudentResourcesPage() {
                                 <div className={`bg-gradient-to-r ${getTypeColor(r.type)} p-4 text-white`}>
                                     <div className="flex items-center justify-between">
                                         <span className="text-3xl">{getTypeIcon(r.type)}</span>
-                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${r.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                            {r.status}
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                            r.status === 'AVAILABLE' ? 'bg-green-100 text-green-700' : 
+                                            r.status === 'BOOKED' ? 'bg-yellow-100 text-yellow-700' : 
+                                            'bg-red-100 text-red-700'
+                                        }`}>
+                                            {r.status === 'AVAILABLE' ? 'Available' : r.status === 'BOOKED' ? 'Booked' : 'Unavailable'}
                                         </span>
                                     </div>
                                 </div>
@@ -298,8 +348,12 @@ export default function StudentResourcesPage() {
                             {/* Status */}
                             <div>
                                 <p className="text-xs text-gray-600 uppercase tracking-wider font-semibold mb-1">Status</p>
-                                <span className={`inline-block px-4 py-2 rounded-lg text-sm font-semibold ${selectedResource.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                    {selectedResource.status}
+                                <span className={`inline-block px-4 py-2 rounded-lg text-sm font-semibold ${
+                                    selectedResource.status === 'AVAILABLE' ? 'bg-green-100 text-green-700' : 
+                                    selectedResource.status === 'BOOKED' ? 'bg-yellow-100 text-yellow-700' : 
+                                    'bg-red-100 text-red-700'
+                                }`}>
+                                    {selectedResource.status === 'AVAILABLE' ? 'Available' : selectedResource.status === 'BOOKED' ? 'Booked' : 'Unavailable'}
                                 </span>
                             </div>
 
@@ -312,13 +366,98 @@ export default function StudentResourcesPage() {
                                     Close
                                 </button>
                                 <button 
-                                    disabled={selectedResource.status !== 'ACTIVE'}
-                                    className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors ${selectedResource.status === 'ACTIVE' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+                                    onClick={() => setShowBookingModal(true)}
+                                    disabled={selectedResource.status !== 'AVAILABLE'}
+                                    className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors ${selectedResource.status === 'AVAILABLE' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
                                 >
-                                    {selectedResource.status === 'ACTIVE' ? 'Request Booking' : 'Not Available'}
+                                    {selectedResource.status === 'AVAILABLE' ? 'Request Booking' : 'Not Available'}
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Booking Modal Form */}
+            {showBookingModal && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60] backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in duration-200">
+                        <div className="bg-blue-600 p-6 text-white flex items-center justify-between">
+                            <h2 className="text-xl font-bold flex items-center gap-2">
+                                <Calendar size={20} /> Request Booking
+                            </h2>
+                            <button onClick={() => setShowBookingModal(false)} className="hover:bg-blue-700 p-1 rounded-lg">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleBookingSubmit} className="p-6 space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs font-bold text-gray-700 uppercase">Your Name</label>
+                                    <input 
+                                        required name="bookedByName" value={bookingData.bookedByName} onChange={handleBookingChange}
+                                        type="text" className="border rounded-lg p-2.5 text-sm" placeholder="John Doe"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs font-bold text-gray-700 uppercase">Email Address</label>
+                                    <input 
+                                        required name="bookedByEmail" value={bookingData.bookedByEmail} onChange={handleBookingChange}
+                                        type="email" className="border rounded-lg p-2.5 text-sm" placeholder="john@example.com"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs font-bold text-gray-700 uppercase">Booking Date</label>
+                                <input 
+                                    required name="bookingDate" value={bookingData.bookingDate} onChange={handleBookingChange}
+                                    type="date" className="border rounded-lg p-2.5 text-sm"
+                                    min={new Date().toISOString().split('T')[0]}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs font-bold text-gray-700 uppercase">Start Time</label>
+                                    <input 
+                                        required name="startTime" value={bookingData.startTime} onChange={handleBookingChange}
+                                        type="time" className="border rounded-lg p-2.5 text-sm"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs font-bold text-gray-700 uppercase">End Time</label>
+                                    <input 
+                                        required name="endTime" value={bookingData.endTime} onChange={handleBookingChange}
+                                        type="time" className="border rounded-lg p-2.5 text-sm"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs font-bold text-gray-700 uppercase">Purpose / Event Name</label>
+                                <textarea 
+                                    required name="purpose" value={bookingData.purpose} onChange={handleBookingChange}
+                                    className="border rounded-lg p-2.5 text-sm min-h-[80px]" placeholder="Lecture, Meeting, Workshop..."
+                                />
+                            </div>
+
+                            <div className="pt-4 flex gap-3">
+                                <button 
+                                    type="button" onClick={() => setShowBookingModal(false)}
+                                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="submit" disabled={bookingLoading}
+                                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 disabled:opacity-50 flex justify-center items-center"
+                                >
+                                    {bookingLoading ? <Loader className="animate-spin" size={18} /> : 'Confirm Booking Request'}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

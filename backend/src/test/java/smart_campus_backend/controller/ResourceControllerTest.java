@@ -57,7 +57,7 @@ class ResourceControllerTest {
         resourceDTO.setLocation("Building A");
         resourceDTO.setAvailabilityStartTime(LocalTime.of(8, 0));
         resourceDTO.setAvailabilityEndTime(LocalTime.of(18, 0));
-        resourceDTO.setStatus(ResourceStatus.ACTIVE);
+        resourceDTO.setStatus(ResourceStatus.AVAILABLE);
     }
 
     @Test
