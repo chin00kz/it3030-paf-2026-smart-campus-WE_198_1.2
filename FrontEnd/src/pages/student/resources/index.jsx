@@ -73,6 +73,7 @@ export default function StudentResourcesPage() {
             });
             setShowBookingModal(false);
             setSelectedResource(null);
+            setError(null); // Clear errors on success
             loadResources(); // Refresh list to update availability
             alert("Booking request submitted successfully!");
         } catch (error) {
@@ -205,7 +206,10 @@ export default function StudentResourcesPage() {
                         {resources.map(r => (
                             <div 
                                 key={r.id}
-                                onClick={() => setSelectedResource(r)}
+                                onClick={() => {
+                                    setError(null); // Clear any previous errors
+                                    setSelectedResource(r);
+                                }}
                                 className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer hover:scale-[1.02] transform"
                             >
                                 {/* Card Header with Type */}
@@ -382,12 +386,26 @@ export default function StudentResourcesPage() {
                             <h2 className="text-xl font-bold flex items-center gap-2">
                                 <Calendar size={20} /> Request Booking
                             </h2>
-                            <button onClick={() => setShowBookingModal(false)} className="hover:bg-blue-700 p-1 rounded-lg">
+                            <button 
+                                onClick={() => {
+                                    setShowBookingModal(false);
+                                    setError(null); // Clear errors when manually closing
+                                }} 
+                                className="hover:bg-blue-700 p-1 rounded-lg"
+                            >
                                 <X size={20} />
                             </button>
                         </div>
 
                         <form onSubmit={handleBookingSubmit} className="p-6 space-y-4">
+                            {/* Modal Error Alert */}
+                            {error && (
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-3 animate-in fade-in slide-in-from-top-1">
+                                    <AlertCircle className="text-red-600 flex-shrink-0" size={18} />
+                                    <p className="text-xs font-medium text-red-800">{error}</p>
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="flex flex-col gap-1">
                                     <label className="text-xs font-bold text-gray-700 uppercase">Your Name</label>
