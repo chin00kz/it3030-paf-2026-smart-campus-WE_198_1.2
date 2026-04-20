@@ -19,7 +19,7 @@ export default function ResourcesPage() {
     const [deletingId, setDeletingId] = useState(null);
 
     const resourceTypes = ["LECTURE_HALL", "LAB", "MEETING_ROOM", "EQUIPMENT"];
-    const resourceStatuses = ["AVAILABLE", "UNAVAILABLE", "BOOKED"];
+    const resourceStatuses = ["AVAILABLE", "UNAVAILABLE"];
 
     useEffect(() => {
         loadResources();
@@ -287,11 +287,9 @@ export default function ResourcesPage() {
                                         <td className="px-4 py-3.5 text-gray-700">{r.location}</td>
                                         <td className="px-4 py-3.5">
                                             <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
-                                                r.status === 'AVAILABLE' ? 'bg-green-100 text-green-700' : 
-                                                r.status === 'BOOKED' ? 'bg-yellow-100 text-yellow-700' : 
-                                                'bg-red-100 text-red-700'
+                                                r.status !== 'UNAVAILABLE' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                                             }`}>
-                                                {r.status === 'AVAILABLE' ? 'Available' : r.status === 'BOOKED' ? 'Booked' : 'Unavailable'}
+                                                {r.status !== 'UNAVAILABLE' ? 'Available' : 'Unavailable'}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3.5 flex justify-end gap-2">
@@ -457,7 +455,7 @@ export default function ResourcesPage() {
                                 >
                                     {resourceStatuses.map(s => (
                                         <option key={s} value={s}>
-                                            {s === 'AVAILABLE' ? 'Available' : s === 'BOOKED' ? 'Booked' : 'Unavailable'}
+                                            {s === 'AVAILABLE' ? 'Available' : 'Unavailable'}
                                         </option>
                                     ))}
                                 </select>

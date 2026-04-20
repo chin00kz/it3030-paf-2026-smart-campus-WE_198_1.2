@@ -22,13 +22,43 @@ public class ResourceBookingService {
         this.resourceRepository = resourceRepository;
     }
 
+    @javax.annotation.PostConstruct
+    public void cleanupBookedStatuses() {
+        // Migration: Convert any remaining BOOKED statuses to AVAILABLE 
+        // to allow them to be booked via time-slots.
+        List<Resource> bookedResources = resourceRepository.findAll().stream()
+                .filter(r -> r.getStatus() == ResourceStatus.BOOKED)
+                .collect(Collectors.toList());
+        
+        if (!bookedResources.isEmpty()) {
+            bookedResources.forEach(r -> r.setStatus(ResourceStatus.AVAILABLE));
+            resourceRepository.saveAll(bookedResources);
+        }
+    }
+
     public ResourceBookingDTO createBooking(ResourceBookingDTO dto) {
         Resource resource = resourceRepository.findById(dto.getResourceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + dto.getResourceId()));
 
-        // Only AVAILABLE resources can be booked
-        if (resource.getStatus() != ResourceStatus.AVAILABLE) {
-            throw new IllegalStateException("Resource is not available for booking. Current status: " + resource.getStatus());
+        // Check for conflicting bookings on the same day with overlapping time slots
+        List<ResourceBooking> existingBookings = bookingRepository.findByResourceIdAndBookingDateAndStatusIn(
+                dto.getResourceId(), 
+                dto.getBookingDate(), 
+                List.of(BookingStatus.CONFIRMED, BookingStatus.PENDING)
+        );
+
+        for (ResourceBooking existing : existingBookings) {
+            // Overlap condition: (StartA < EndB) and (EndA > StartB)
+            if (dto.getStartTime().isBefore(existing.getEndTime()) && 
+                dto.getEndTime().isAfter(existing.getStartTime())) {
+                
+                throw new IllegalStateException(String.format(
+                    "Time conflict: This resource is already booked from %s to %s on %s.",
+                    existing.getStartTime(), 
+                    existing.getEndTime(), 
+                    dto.getBookingDate()
+                ));
+            }
         }
 
         if (dto.getBookedByName() == null || dto.getBookedByName().isBlank())
@@ -52,9 +82,8 @@ public class ResourceBookingService {
         booking.setPurpose(dto.getPurpose());
         ResourceBooking savedBooking = bookingRepository.save(booking);
         
-        // Update resource status to BOOKED
-        resource.setStatus(ResourceStatus.BOOKED);
-        resourceRepository.save(resource);
+        // Note: We no longer set the resource status to BOOKED globally 
+        // to allow it to be booked on other dates.
 
         return mapToDto(savedBooking);
     }

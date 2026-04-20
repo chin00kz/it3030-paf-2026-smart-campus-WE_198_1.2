@@ -51,3 +51,13 @@ export const cancelBooking = async (id, email) => {
         throw error;
     }
 };
+
+export const getBookingsByResource = async (resourceId) => {
+    try {
+        const response = await axios.get(`${BASE_URL}/resource/${resourceId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching resource bookings:', error);
+        throw error;
+    }
+};
