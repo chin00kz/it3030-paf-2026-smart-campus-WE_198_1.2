@@ -9,6 +9,7 @@ import BannedUsers from "@/pages/admin/banned-users"
 import Reports from "@/pages/admin/reports"
 import LoginPage from "@/pages/login"
 import ResourcesPage from "@/pages/admin/resources/index"
+import AdminBookingsPage from "@/pages/admin/bookings/index"
 import StudentResourcesPage from "@/pages/student/resources/index"
 import ManagerDashboard from "@/pages/manager/dashboard"
 import TechnicianDashboard from "@/pages/technician/dashboard"
@@ -63,6 +64,7 @@ function App() {
           <Route path="banned-users" element={<BannedUsers />} />
           <Route path="reports" element={<Reports />} />
           <Route path="resources" element={<ResourcesPage />} />
+          <Route path="bookings" element={<AdminBookingsPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>

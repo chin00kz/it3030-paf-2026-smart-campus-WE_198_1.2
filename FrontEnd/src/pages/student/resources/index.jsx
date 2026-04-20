@@ -12,7 +12,7 @@ export default function StudentResourcesPage() {
     const [selectedResource, setSelectedResource] = useState(null);
 
     const resourceTypes = ["LECTURE_HALL", "LAB", "MEETING_ROOM", "EQUIPMENT"];
-    const resourceStatuses = ["AVAILABLE", "UNAVAILABLE", "BOOKED"];
+    const resourceStatuses = ["AVAILABLE", "UNAVAILABLE"];
 
     const [bookingData, setBookingData] = useState({
         bookedByName: "",
@@ -73,7 +73,7 @@ export default function StudentResourcesPage() {
             });
             setShowBookingModal(false);
             setSelectedResource(null);
-            loadResources(); // Refresh list to show BOOKED status
+            loadResources(); // Refresh list to update availability
             alert("Booking request submitted successfully!");
         } catch (error) {
             setError(getErrorMessage(error));
@@ -213,11 +213,9 @@ export default function StudentResourcesPage() {
                                     <div className="flex items-center justify-between">
                                         <span className="text-3xl">{getTypeIcon(r.type)}</span>
                                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                            r.status === 'AVAILABLE' ? 'bg-green-100 text-green-700' : 
-                                            r.status === 'BOOKED' ? 'bg-yellow-100 text-yellow-700' : 
-                                            'bg-red-100 text-red-700'
+                                            r.status !== 'UNAVAILABLE' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                                         }`}>
-                                            {r.status === 'AVAILABLE' ? 'Available' : r.status === 'BOOKED' ? 'Booked' : 'Unavailable'}
+                                            {r.status !== 'UNAVAILABLE' ? 'Available' : 'Unavailable'}
                                         </span>
                                     </div>
                                 </div>
@@ -349,11 +347,9 @@ export default function StudentResourcesPage() {
                             <div>
                                 <p className="text-xs text-gray-600 uppercase tracking-wider font-semibold mb-1">Status</p>
                                 <span className={`inline-block px-4 py-2 rounded-lg text-sm font-semibold ${
-                                    selectedResource.status === 'AVAILABLE' ? 'bg-green-100 text-green-700' : 
-                                    selectedResource.status === 'BOOKED' ? 'bg-yellow-100 text-yellow-700' : 
-                                    'bg-red-100 text-red-700'
+                                    selectedResource.status !== 'UNAVAILABLE' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                                 }`}>
-                                    {selectedResource.status === 'AVAILABLE' ? 'Available' : selectedResource.status === 'BOOKED' ? 'Booked' : 'Unavailable'}
+                                    {selectedResource.status !== 'UNAVAILABLE' ? 'Available' : 'Unavailable'}
                                 </span>
                             </div>
 
@@ -367,10 +363,10 @@ export default function StudentResourcesPage() {
                                 </button>
                                 <button 
                                     onClick={() => setShowBookingModal(true)}
-                                    disabled={selectedResource.status !== 'AVAILABLE'}
-                                    className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors ${selectedResource.status === 'AVAILABLE' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+                                    disabled={selectedResource.status === 'UNAVAILABLE'}
+                                    className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors ${selectedResource.status !== 'UNAVAILABLE' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
                                 >
-                                    {selectedResource.status === 'AVAILABLE' ? 'Request Booking' : 'Not Available'}
+                                    {selectedResource.status !== 'UNAVAILABLE' ? 'Request Booking' : 'Not Available'}
                                 </button>
                             </div>
                         </div>

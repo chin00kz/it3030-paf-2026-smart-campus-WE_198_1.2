@@ -19,5 +19,7 @@ public interface ResourceBookingRepository extends JpaRepository<ResourceBooking
 
     List<ResourceBooking> findAllByOrderByCreatedAtDesc();
 
-    boolean existsByResourceIdAndBookingDateAndStatus(Long resourceId, LocalDate bookingDate, BookingStatus status);
+    boolean existsByResourceIdAndBookingDateAndStatusIn(Long resourceId, LocalDate bookingDate, List<BookingStatus> statuses);
+
+    List<ResourceBooking> findByResourceIdAndBookingDateAndStatusIn(Long resourceId, LocalDate bookingDate, List<BookingStatus> statuses);
 }
