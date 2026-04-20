@@ -41,6 +41,16 @@ export const createResource = async (resource) => {
     }
 };
 
+export const bulkCreateResources = async (resources) => {
+    try {
+        const response = await axios.post(`${BASE_URL}/bulk`, resources);
+        return response.data;
+    } catch (error) {
+        console.error('Error bulk creating resources:', error);
+        throw error;
+    }
+};
+
 export const updateResource = async (id, resource) => {
     try {
         const response = await axios.put(`${BASE_URL}/${id}`, resource);
