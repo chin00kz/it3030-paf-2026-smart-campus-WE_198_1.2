@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
-import { 
-    getResources, createResource, updateResource, deleteResource, getErrorMessage 
+import {
+    getResources, createResource, updateResource, deleteResource, getErrorMessage
 } from "@/api/resourceApi";
-import { Plus, Edit, Trash2, Search, X, AlertCircle, CheckCircle, Loader } from "lucide-react";
+import { Plus, Edit, Trash2, Search, X, AlertCircle, CheckCircle, Loader, Upload } from "lucide-react";
+import BulkUploadModal from "./BulkUploadModal";
 
 export default function ResourcesPage() {
     const [resources, setResources] = useState([]);
     const [filters, setFilters] = useState({ type: "", capacity: "", location: "", name: "", status: "" });
     const [showForm, setShowForm] = useState(false);
+    const [showBulkUpload, setShowBulkUpload] = useState(false);
     const [formData, setFormData] = useState(null);
     const [formErrors, setFormErrors] = useState({});
     const [isEditing, setIsEditing] = useState(false);
@@ -73,14 +75,14 @@ export default function ResourcesPage() {
     };
 
     const handleAddNew = () => {
-        setFormData({ 
-            name: "", 
-            type: "LECTURE_HALL", 
-            capacity: 1, 
-            location: "", 
-            status: "AVAILABLE", 
-            availabilityStartTime: "08:00", 
-            availabilityEndTime: "18:00" 
+        setFormData({
+            name: "",
+            type: "LECTURE_HALL",
+            capacity: 1,
+            location: "",
+            status: "AVAILABLE",
+            availabilityStartTime: "08:00",
+            availabilityEndTime: "18:00"
         });
         setFormErrors({});
         setIsEditing(false);
@@ -172,12 +174,20 @@ export default function ResourcesPage() {
                             Architecting the campus resource ecosystem
                         </p>
                     </div>
-                    <button 
-                        onClick={handleAddNew}
-                        className="bg-white text-blue-600 px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-blue-50 transition-all shadow-lg flex items-center gap-2 group"
-                    >
-                        <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Add Asset
-                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setShowBulkUpload(true)}
+                            className="bg-blue-600/20 text-white border border-white/20 backdrop-blur-md px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-all shadow-lg flex items-center gap-2 group"
+                        >
+                            <Plus size={18} className="group-hover:-translate-y-0.5 transition-transform" /> Import CSV
+                        </button>
+                        <button
+                            onClick={handleAddNew}
+                            className="bg-white text-blue-600 px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-blue-50 transition-all shadow-lg flex items-center gap-2 group"
+                        >
+                            <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Add Asset
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -214,7 +224,7 @@ export default function ResourcesPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                         <div className="space-y-2">
                             <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Resource Alias</label>
-                            <input 
+                            <input
                                 type="text" name="name" value={filters.name} onChange={handleFilterChange}
                                 placeholder="Search..."
                                 className="w-full bg-white/50 border-none rounded-xl px-4 py-2.5 text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/5 transition-all shadow-inner"
@@ -222,7 +232,7 @@ export default function ResourcesPage() {
                         </div>
                         <div className="space-y-2">
                             <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Classification</label>
-                            <select 
+                            <select
                                 name="type" value={filters.type} onChange={handleFilterChange}
                                 className="w-full bg-white/50 border-none rounded-xl px-4 py-2.5 text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/5 transition-all shadow-inner"
                             >
@@ -232,7 +242,7 @@ export default function ResourcesPage() {
                         </div>
                         <div className="space-y-2">
                             <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Min Threshold</label>
-                            <input 
+                            <input
                                 type="number" name="capacity" value={filters.capacity} onChange={handleFilterChange}
                                 placeholder="0" min="0"
                                 className="w-full bg-white/50 border-none rounded-xl px-4 py-2.5 text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/5 transition-all shadow-inner"
@@ -240,7 +250,7 @@ export default function ResourcesPage() {
                         </div>
                         <div className="space-y-2">
                             <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Sector</label>
-                            <input 
+                            <input
                                 type="text" name="location" value={filters.location} onChange={handleFilterChange}
                                 placeholder="Location"
                                 className="w-full bg-white/50 border-none rounded-xl px-4 py-2.5 text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/5 transition-all shadow-inner"
@@ -248,7 +258,7 @@ export default function ResourcesPage() {
                         </div>
                         <div className="space-y-2">
                             <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Operational Status</label>
-                            <select 
+                            <select
                                 name="status" value={filters.status} onChange={handleFilterChange}
                                 className="w-full bg-white/50 border-none rounded-xl px-4 py-2.5 text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/5 transition-all shadow-inner"
                             >
@@ -311,24 +321,23 @@ export default function ResourcesPage() {
                                                 <p className="text-xs font-bold text-slate-600 italic bg-slate-50 px-2.5 py-0.5 rounded-lg border border-slate-100 w-fit">{r.location}</p>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`inline-flex px-3 py-1 rounded-lg text-xs font-black uppercase tracking-widest border transition-all ${
-                                                    r.status !== 'UNAVAILABLE' 
-                                                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 shadow-emerald-100/50' 
+                                                <span className={`inline-flex px-3 py-1 rounded-lg text-xs font-black uppercase tracking-widest border transition-all ${r.status !== 'UNAVAILABLE'
+                                                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 shadow-emerald-100/50'
                                                     : 'bg-red-500/10 text-red-600 border-red-500/20 shadow-red-100/50'
-                                                }`}>
+                                                    }`}>
                                                     {r.status !== 'UNAVAILABLE' ? 'Available' : 'Unavailable'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex justify-end gap-2">
-                                                    <button 
-                                                        onClick={() => handleEdit(r)} 
+                                                    <button
+                                                        onClick={() => handleEdit(r)}
                                                         className="p-2.5 bg-slate-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-all shadow-sm"
                                                     >
                                                         <Edit size={16} />
                                                     </button>
-                                                    <button 
-                                                        onClick={() => handleDelete(r.id, r.name)} 
+                                                    <button
+                                                        onClick={() => handleDelete(r.id, r.name)}
                                                         disabled={deletingId === r.id}
                                                         className="p-2.5 bg-slate-50 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-all shadow-sm disabled:opacity-50"
                                                     >
@@ -380,98 +389,105 @@ export default function ResourcesPage() {
                     )}
                 </div>
 
-            {/* Compact Asset Management Modal */}
-            {showForm && (
-                <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200">
-                        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white flex items-center justify-between">
-                            <h2 className="text-xl font-black uppercase tracking-tighter italic">
-                                {isEditing ? 'Sync' : 'Initialize'} <span className="text-emerald-300">Asset</span>
-                            </h2>
-                            <button onClick={() => setShowForm(false)} className="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all">
-                                <X size={20} />
-                            </button>
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-8 space-y-5">
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Designation Alias</label>
-                                <input 
-                                    type="text" name="name" value={formData?.name || ""} onChange={handleFormChange} 
-                                    className={`w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner ${formErrors.name ? 'ring-1 ring-red-500' : ''}`}
-                                />
-                                {formErrors.name && <p className="text-xs text-red-500 font-bold px-1 uppercase tracking-wider">{formErrors.name}</p>}
+                {/* Compact Asset Management Modal */}
+                {showForm && (
+                    <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
+                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200">
+                            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white flex items-center justify-between">
+                                <h2 className="text-xl font-black uppercase tracking-tighter italic">
+                                    {isEditing ? 'Sync' : 'Initialize'} <span className="text-emerald-300">Asset</span>
+                                </h2>
+                                <button onClick={() => setShowForm(false)} className="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all">
+                                    <X size={20} />
+                                </button>
                             </div>
-
-                            <div className="grid grid-cols-2 gap-5">
+                            <form onSubmit={handleSubmit} className="p-8 space-y-5">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Classification Pool</label>
-                                    <select 
-                                        name="type" value={formData?.type || ""} onChange={handleFormChange} 
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Designation Alias</label>
+                                    <input
+                                        type="text" name="name" value={formData?.name || ""} onChange={handleFormChange}
+                                        className={`w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner ${formErrors.name ? 'ring-1 ring-red-500' : ''}`}
+                                    />
+                                    {formErrors.name && <p className="text-xs text-red-500 font-bold px-1 uppercase tracking-wider">{formErrors.name}</p>}
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-5">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Classification Pool</label>
+                                        <select
+                                            name="type" value={formData?.type || ""} onChange={handleFormChange}
+                                            className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
+                                        >
+                                            {resourceTypes.map(t => <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Capacity Limit</label>
+                                        <input
+                                            type="number" min="1" max="10000" name="capacity" value={formData?.capacity || ""} onChange={handleFormChange}
+                                            className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Deployment Sector</label>
+                                    <input
+                                        type="text" name="location" value={formData?.location || ""} onChange={handleFormChange}
+                                        className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-5">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Ops Start</label>
+                                        <input
+                                            type="time" name="availabilityStartTime" value={formData?.availabilityStartTime || "08:00"} onChange={handleFormChange}
+                                            className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Ops End</label>
+                                        <input
+                                            type="time" name="availabilityEndTime" value={formData?.availabilityEndTime || "18:00"} onChange={handleFormChange}
+                                            className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Asset Status</label>
+                                    <select
+                                        name="status" value={formData?.status || ""} onChange={handleFormChange}
                                         className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
                                     >
-                                        {resourceTypes.map(t => <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>)}
+                                        {resourceStatuses.map(s => <option key={s} value={s}>{s === 'AVAILABLE' ? 'Available' : 'Unavailable'}</option>)}
                                     </select>
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Capacity Limit</label>
-                                    <input 
-                                        type="number" min="1" max="10000" name="capacity" value={formData?.capacity || ""} onChange={handleFormChange} 
-                                        className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
-                                    />
+
+                                <div className="pt-4 flex gap-4">
+                                    <button type="button" onClick={() => setShowForm(false)} className="flex-1 px-6 py-3 rounded-xl border border-slate-200 font-black text-slate-400 hover:bg-slate-50 transition-all uppercase tracking-widest text-xs">
+                                        Abort
+                                    </button>
+                                    <button
+                                        type="submit" disabled={submitting}
+                                        className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl font-black uppercase tracking-[0.1em] text-xs hover:shadow-lg transition-all disabled:opacity-50 flex justify-center items-center gap-2"
+                                    >
+                                        {submitting ? <Loader className="animate-spin" size={16} /> : (isEditing ? 'Commit' : 'Launch')}
+                                    </button>
                                 </div>
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Deployment Sector</label>
-                                <input 
-                                    type="text" name="location" value={formData?.location || ""} onChange={handleFormChange} 
-                                    className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-5">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Ops Start</label>
-                                    <input 
-                                        type="time" name="availabilityStartTime" value={formData?.availabilityStartTime || "08:00"} onChange={handleFormChange} 
-                                        className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner" 
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Ops End</label>
-                                    <input 
-                                        type="time" name="availabilityEndTime" value={formData?.availabilityEndTime || "18:00"} onChange={handleFormChange} 
-                                        className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner" 
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Asset Status</label>
-                                <select 
-                                    name="status" value={formData?.status || ""} onChange={handleFormChange} 
-                                    className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
-                                >
-                                    {resourceStatuses.map(s => <option key={s} value={s}>{s === 'AVAILABLE' ? 'Available' : 'Unavailable'}</option>)}
-                                </select>
-                            </div>
-
-                            <div className="pt-4 flex gap-4">
-                                <button type="button" onClick={() => setShowForm(false)} className="flex-1 px-6 py-3 rounded-xl border border-slate-200 font-black text-slate-400 hover:bg-slate-50 transition-all uppercase tracking-widest text-xs">
-                                    Abort
-                                </button>
-                                <button 
-                                    type="submit" disabled={submitting}
-                                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl font-black uppercase tracking-[0.1em] text-xs hover:shadow-lg transition-all disabled:opacity-50 flex justify-center items-center gap-2"
-                                >
-                                    {submitting ? <Loader className="animate-spin" size={16} /> : (isEditing ? 'Commit' : 'Launch')}
-                                </button>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+
+                {showBulkUpload && (
+                    <BulkUploadModal
+                        onClose={() => setShowBulkUpload(false)}
+                        onUploadSuccess={loadResources}
+                    />
+                )}
+            </div>
         </div>
-    </div>
     );
 }

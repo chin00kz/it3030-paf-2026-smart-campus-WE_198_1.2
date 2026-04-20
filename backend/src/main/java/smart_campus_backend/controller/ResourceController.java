@@ -41,6 +41,28 @@ public class ResourceController {
     }
 
     /**
+     * Bulk create resources
+     * @param resourceDTOs List of resource data
+     * @return Created resources with 201 status
+     */
+    @PostMapping("/bulk")
+    public ResponseEntity<?> createResources(@Valid @RequestBody List<ResourceDTO> resourceDTOs) {
+        try {
+            return new ResponseEntity<>(resourceService.createResources(resourceDTOs), HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(
+                new ErrorResponse("Validation Error", e.getMessage()),
+                HttpStatus.BAD_REQUEST
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                new ErrorResponse("Internal Error", e.getMessage()),
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    /**
      * Get all resources with pagination and filtering
      * @param type Resource type filter (optional)
      * @param capacity Minimum capacity filter (optional)

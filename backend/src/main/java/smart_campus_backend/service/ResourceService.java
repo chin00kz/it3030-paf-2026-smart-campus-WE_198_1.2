@@ -32,6 +32,24 @@ public class ResourceService {
         return mapToDto(resourceRepository.save(entity));
     }
 
+    public List<ResourceDTO> createResources(List<ResourceDTO> dtos) {
+        if (dtos == null || dtos.isEmpty()) {
+            throw new IllegalArgumentException("Resource list cannot be null or empty");
+        }
+        
+        // Validate all first to ensure "all or nothing" consistency
+        dtos.forEach(this::validateResourceDTO);
+        
+        List<Resource> entities = dtos.stream()
+                .map(this::mapToEntity)
+                .collect(Collectors.toList());
+        
+        return resourceRepository.saveAll(entities)
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
     public Page<ResourceDTO> getResources(String type, Integer capacity, String location, String name, 
                                           String status, int page, int size) {
         // Validate pagination parameters
