@@ -76,6 +76,14 @@ export default function BulkUploadModal({ onClose, onUploadSuccess }) {
                     // Helper to normalize types (e.g., "Lecture Hall" -> "LECTURE_HALL")
                     const normalizeValue = (val) => val?.trim().toUpperCase().replace(/[\s-]/g, "_");
                     
+                    // Helper to ensure time is HH:mm (with leading zero)
+                    const normalizeTime = (time) => {
+                        if (!time) return "08:00";
+                        const trimmed = time.trim();
+                        if (/^\d:/.test(trimmed)) return "0" + trimmed; // "8:00" -> "08:00"
+                        return trimmed;
+                    };
+
                     const normalizedType = normalizeValue(typeValue);
                     const normalizedStatus = normalizeValue(status);
 
@@ -85,8 +93,8 @@ export default function BulkUploadModal({ onClose, onUploadSuccess }) {
                         capacity: parseInt(capacity),
                         location: location?.trim(),
                         status: normalizedStatus === "AVAILABLE" ? "AVAILABLE" : "UNAVAILABLE",
-                        availabilityStartTime: startTime?.trim(),
-                        availabilityEndTime: endTime?.trim()
+                        availabilityStartTime: normalizeTime(startTime),
+                        availabilityEndTime: normalizeTime(endTime)
                     };
                 });
 
