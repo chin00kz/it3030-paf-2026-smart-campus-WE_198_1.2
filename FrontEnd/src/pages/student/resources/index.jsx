@@ -270,7 +270,7 @@ export default function StudentResourcesPage() {
                 ) : (
                     <>
                         {/* High-End Resources Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-4">
                             {resources.map(r => (
                                 <div 
                                     key={r.id}
@@ -281,14 +281,14 @@ export default function StudentResourcesPage() {
                                     className="group bg-white rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden cursor-pointer hover:-translate-y-2 border border-slate-100"
                                 >
                                     {/* Immersive Card Header */}
-                                    <div className={`h-44 relative flex items-center justify-center overflow-hidden bg-gradient-to-br ${
+                                    <div className={`h-32 relative flex items-center justify-center overflow-hidden bg-gradient-to-br ${
                                         r.type === 'LECTURE_HALL' ? 'from-blue-600 to-indigo-700' :
                                         r.type === 'LAB' ? 'from-emerald-500 to-teal-700' :
                                         r.type === 'MEETING_ROOM' ? 'from-sky-400 to-blue-600' :
                                         'from-amber-400 to-orange-600'
                                     }`}>
                                         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                        <span className="text-7xl drop-shadow-2xl transform group-hover:scale-125 transition-transform duration-700 ease-out">{getTypeIcon(r.type)}</span>
+                                        <span className="text-6xl drop-shadow-2xl transform group-hover:scale-125 transition-transform duration-700 ease-out">{getTypeIcon(r.type)}</span>
                                         
                                         <div className="absolute top-6 right-6">
                                             <span className={`glass-morphism px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border-white/40 shadow-lg ${
@@ -300,37 +300,37 @@ export default function StudentResourcesPage() {
                                     </div>
 
                                     {/* Refined Card Content */}
-                                    <div className="p-8 space-y-6">
+                                    <div className="p-5 space-y-4">
                                         <div className="space-y-1">
-                                            <h3 className="text-2xl font-black text-slate-900 leading-tight group-hover:text-blue-600 transition-colors uppercase tracking-tight">{r.name}</h3>
+                                            <h3 className="text-xl font-black text-slate-900 leading-tight group-hover:text-blue-600 transition-colors uppercase tracking-tight">{r.name}</h3>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
                                                 {r.type.replace(/_/g, ' ')}
                                             </p>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-50">
+                                        <div className="space-y-3 pt-4 border-t border-slate-50">
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2.5 bg-slate-50 rounded-xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
-                                                    <Users size={18} />
+                                                <div className="p-2 bg-slate-50 rounded-lg text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                                                    <Users size={16} />
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Capacity</span>
-                                                    <span className="text-sm font-black text-slate-700">{r.capacity}</span>
+                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Capacity</span>
+                                                    <span className="text-xs font-black text-slate-700">{r.capacity} Seats</span>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2.5 bg-slate-50 rounded-xl text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
-                                                    <MapPin size={18} />
+                                                <div className="p-2 bg-slate-50 rounded-lg text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
+                                                    <MapPin size={16} />
                                                 </div>
-                                                <div className="flex flex-col">
-                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Location</span>
-                                                    <span className="text-sm font-black text-slate-700 truncate max-w-[100px]">{r.location}</span>
+                                                <div className="flex flex-col overflow-hidden">
+                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Location</span>
+                                                    <span className="text-xs font-black text-slate-700 truncate">{r.location}</span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <button className="w-full py-4 rounded-2xl bg-blue-50/50 border border-blue-100/50 text-blue-700 font-black text-sm uppercase tracking-widest group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-lg group-hover:shadow-blue-200/50">
+                                        <button className="w-full py-3 rounded-xl bg-blue-50/50 border border-blue-100/50 text-blue-700 font-black text-xs uppercase tracking-widest group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-lg group-hover:shadow-blue-200/50">
                                             Dive Deeper
                                         </button>
                                     </div>
