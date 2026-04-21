@@ -14,6 +14,8 @@ export default function StudentResourcesPage() {
     const [loadingAvailability, setLoadingAvailability] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [suggestions, setSuggestions] = useState([]);
+    const [nearbyResources, setNearbyResources] = useState([]);
+    const [loadingNearby, setLoadingNearby] = useState(false);
 
     const resourceTypes = ["LECTURE_HALL", "LAB", "MEETING_ROOM", "EQUIPMENT"];
     const resourceStatuses = ["AVAILABLE", "UNAVAILABLE"];
@@ -36,10 +38,26 @@ export default function StudentResourcesPage() {
     useEffect(() => {
         if (selectedResource) {
             fetchAvailability(selectedResource.id);
+            fetchNearbyResources(selectedResource.location, selectedResource.id);
         } else {
             setWeeklyAvailability([]);
+            setNearbyResources([]);
         }
     }, [selectedResource]);
+
+    const fetchNearbyResources = async (location, currentId) => {
+        setLoadingNearby(true);
+        try {
+            // Fetch resources with same location, limit to 4
+            const data = await getResources({ location }, 0, 10);
+            const filtered = (data.content || []).filter(r => r.id !== currentId);
+            setNearbyResources(filtered.slice(0, 4));
+        } catch (error) {
+            console.error("Failed to fetch nearby resources", error);
+        } finally {
+            setLoadingNearby(false);
+        }
+    };
 
     const fetchAvailability = async (id) => {
         setLoadingAvailability(true);
@@ -362,8 +380,8 @@ export default function StudentResourcesPage() {
             {/* Premium Detail Modal */}
             {selectedResource && (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-500">
-                    <div className="bg-white/90 backdrop-blur-xl rounded-[3rem] shadow-2xl w-full max-w-xl overflow-hidden border border-white/40 animate-in zoom-in-95 duration-300">
-                        <div className={`h-40 relative flex flex-col justify-end p-8 bg-gradient-to-br ${
+                    <div className="bg-white/90 backdrop-blur-xl rounded-[3rem] shadow-2xl w-full max-w-xl flex flex-col max-h-[95vh] overflow-hidden border border-white/40 animate-in zoom-in-95 duration-300">
+                        <div className={`shrink-0 h-40 relative flex flex-col justify-end p-8 bg-gradient-to-br ${
                             selectedResource.type === 'LECTURE_HALL' ? 'from-blue-600 to-indigo-700' :
                             selectedResource.type === 'LAB' ? 'from-emerald-500 to-teal-700' :
                             'from-sky-400 to-blue-600'
@@ -379,7 +397,7 @@ export default function StudentResourcesPage() {
                             <h2 className="text-4xl font-black text-white tracking-tight drop-shadow-md uppercase italic">{selectedResource.name}</h2>
                         </div>
                         
-                        <div className="p-10 space-y-8">
+                        <div className="p-10 space-y-8 overflow-y-auto custom-scrollbar">
                             <div className="grid grid-cols-2 gap-8">
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Facility Type</p>
@@ -431,7 +449,37 @@ export default function StudentResourcesPage() {
                                 )}
                             </div>
 
-                            <div className="pt-6 flex gap-5 border-t border-slate-100">
+                            {nearbyResources.length > 0 ? (
+                                <div className="space-y-4">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Nearby Resources (Same Sector)</p>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {nearbyResources.map(nr => (
+                                            <button
+                                                key={nr.id}
+                                                onClick={() => {
+                                                    setError(null);
+                                                    setSelectedResource(nr);
+                                                }}
+                                                className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-blue-50/50 rounded-2xl border border-slate-100 hover:border-blue-100 transition-all text-left group"
+                                            >
+                                                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-lg shadow-sm group-hover:scale-110 transition-transform">
+                                                    {getTypeIcon(nr.type)}
+                                                </div>
+                                                <div className="overflow-hidden">
+                                                    <p className="text-xs font-black text-slate-800 truncate uppercase tracking-tight">{nr.name}</p>
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate">{nr.type.replace(/_/g, ' ')}</p>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : !loadingNearby && (
+                                <div className="p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center italic">No other resources discovered in this sector</p>
+                                </div>
+                            )}
+
+                            <div className="pt-6 flex gap-5 border-t border-slate-100 shrink-0 mt-auto">
                                 <button 
                                     onClick={() => setSelectedResource(null)}
                                     className="flex-1 px-8 py-5 rounded-2xl bg-slate-50 border border-slate-200 font-black text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-all uppercase tracking-widest text-xs shadow-sm"
