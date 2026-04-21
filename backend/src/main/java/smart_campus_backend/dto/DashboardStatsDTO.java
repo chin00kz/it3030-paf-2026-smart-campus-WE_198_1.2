@@ -18,6 +18,12 @@ public class DashboardStatsDTO {
     private long pendingUsers;
     private long bannedUsers;
     private List<DailyActivity> activityData;
+    
+    // Resource Metrics
+    private long totalResources;
+    private long activeResources;
+    private long outOfServiceResources;
+    private Map<String, Long> resourcesByType;
 
     @Data
     @AllArgsConstructor
