@@ -11,7 +11,10 @@ import smart_campus_backend.model.ResourceType;
 import smart_campus_backend.model.ResourceStatus;
 import smart_campus_backend.dto.ResourceDTO;
 import smart_campus_backend.exception.ResourceNotFoundException;
+import smart_campus_backend.dto.ResourceInsightsDTO;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -122,6 +125,70 @@ public class ResourceService {
         Resource resource = resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + id));
         resourceRepository.delete(resource);
+    }
+
+    public ResourceInsightsDTO getInsights() {
+        List<Resource> allResources = resourceRepository.findAll();
+        
+        long totalResources = allResources.size();
+        
+        // Resources by type
+        Map<String, Long> resourcesByType = allResources.stream()
+                .collect(Collectors.groupingBy(r -> r.getType().name(), Collectors.counting()));
+        
+        // Status distribution
+        long activeCount = allResources.stream()
+                .filter(r -> r.getStatus() == ResourceStatus.AVAILABLE)
+                .count();
+        long outOfServiceCount = allResources.stream()
+                .filter(r -> r.getStatus() == ResourceStatus.UNAVAILABLE)
+                .count();
+        
+        // Building distribution (assume format likes "Building A - Room 101" or similar)
+        Map<String, Long> buildingDistribution = new HashMap<>();
+        for (Resource r : allResources) {
+            String location = r.getLocation();
+            String building = "Other";
+            if (location != null) {
+                // Try to extract building name (e.g., everything before ' - ', ', ', or first word)
+                String[] parts = location.split("[,\\-|\\s]");
+                if (parts.length > 0 && !parts[0].isEmpty()) {
+                    building = parts[0].trim();
+                }
+            }
+            buildingDistribution.put(building, buildingDistribution.getOrDefault(building, 0L) + 1);
+        }
+        
+        // Capacity analysis
+        long small = allResources.stream().filter(r -> r.getCapacity() != null && r.getCapacity() <= 50).count();
+        long medium = allResources.stream().filter(r -> r.getCapacity() != null && r.getCapacity() > 50 && r.getCapacity() <= 150).count();
+        long large = allResources.stream().filter(r -> r.getCapacity() != null && r.getCapacity() > 150).count();
+        
+        ResourceInsightsDTO.CapacityAnalysis capacityAnalysis = ResourceInsightsDTO.CapacityAnalysis.builder()
+                .small(small)
+                .medium(medium)
+                .large(large)
+                .build();
+        
+        // Out-of-service list
+        List<ResourceInsightsDTO.UnavailableResourceDTO> outOfServiceList = allResources.stream()
+                .filter(r -> r.getStatus() == ResourceStatus.UNAVAILABLE)
+                .map(r -> ResourceInsightsDTO.UnavailableResourceDTO.builder()
+                        .name(r.getName())
+                        .location(r.getLocation())
+                        .type(r.getType().name())
+                        .build())
+                .collect(Collectors.toList());
+        
+        return ResourceInsightsDTO.builder()
+                .totalResources(totalResources)
+                .resourcesByType(resourcesByType)
+                .activeCount(activeCount)
+                .outOfServiceCount(outOfServiceCount)
+                .buildingDistribution(buildingDistribution)
+                .capacityAnalysis(capacityAnalysis)
+                .outOfServiceList(outOfServiceList)
+                .build();
     }
     
     public List<ResourceDTO> getResourcesByStatus(ResourceStatus status) {
