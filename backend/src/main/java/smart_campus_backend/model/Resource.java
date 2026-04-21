@@ -34,6 +34,9 @@ public class Resource {
     @Column(nullable = false)
     private ResourceStatus status;
 
+    @Column(name = "available_days")
+    private String availableDays;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

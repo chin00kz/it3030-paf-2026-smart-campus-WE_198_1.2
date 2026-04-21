@@ -34,4 +34,9 @@ public interface ResourceRepository extends JpaRepository<Resource, Long> {
     List<Resource> findByType(ResourceType type);
     
     List<Resource> findByLocationIgnoreCase(String location);
+
+    long countByStatus(ResourceStatus status);
+
+    @Query("SELECT r.type, COUNT(r) FROM Resource r GROUP BY r.type")
+    List<Object[]> countByType();
 }

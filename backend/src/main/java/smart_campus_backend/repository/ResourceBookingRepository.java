@@ -22,4 +22,6 @@ public interface ResourceBookingRepository extends JpaRepository<ResourceBooking
     boolean existsByResourceIdAndBookingDateAndStatusIn(Long resourceId, LocalDate bookingDate, List<BookingStatus> statuses);
 
     List<ResourceBooking> findByResourceIdAndBookingDateAndStatusIn(Long resourceId, LocalDate bookingDate, List<BookingStatus> statuses);
+
+    List<ResourceBooking> findByResourceIdAndBookingDateBetweenAndStatusIn(Long resourceId, LocalDate startDate, LocalDate endDate, List<BookingStatus> statuses);
 }
