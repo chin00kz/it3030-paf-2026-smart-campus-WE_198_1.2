@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getResources, getErrorMessage } from "@/api/resourceApi";
 import { createBooking } from "@/api/bookingApi";
 import { Search, AlertCircle, Loader, MapPin, Users, Clock, X, Calendar, ChevronRight } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function StudentResourcesPage() {
     const [resources, setResources] = useState([]);
@@ -10,9 +12,11 @@ export default function StudentResourcesPage() {
     const [error, setError] = useState(null);
     const [pagination, setPagination] = useState({ page: 0, size: 10, totalPages: 0, totalElements: 0 });
     const [selectedResource, setSelectedResource] = useState(null);
+    
+    // DatePicker reference for the icon
+    const datePickerRef = useRef(null);
 
     const resourceTypes = ["LECTURE_HALL", "LAB", "MEETING_ROOM", "EQUIPMENT"];
-    const resourceStatuses = ["AVAILABLE", "UNAVAILABLE"];
 
     const [bookingData, setBookingData] = useState({
         bookedByName: "",
@@ -73,29 +77,19 @@ export default function StudentResourcesPage() {
             await createBooking({
                 ...bookingData,
                 resourceId: selectedResource.id,
-                startTime: bookingData.startTime + ":00", // Format for Backend LocalTime
+                startTime: bookingData.startTime + ":00", 
                 endTime: bookingData.endTime + ":00"
             });
             setShowBookingModal(false);
             setSelectedResource(null);
-            setError(null); // Clear errors on success
-            loadResources(); // Refresh list to update availability
+            setError(null); 
+            loadResources(); 
             alert("Booking request submitted successfully!");
         } catch (error) {
             setError(getErrorMessage(error));
         } finally {
             setBookingLoading(false);
         }
-    };
-
-    const getTypeColor = (type) => {
-        const colors = {
-            'LECTURE_HALL': 'from-blue-500 to-blue-600',
-            'LAB': 'from-purple-500 to-purple-600',
-            'MEETING_ROOM': 'from-green-500 to-green-600',
-            'EQUIPMENT': 'from-orange-500 to-orange-600'
-        };
-        return colors[type] || 'from-gray-500 to-gray-600';
     };
 
     const getTypeIcon = (type) => {
@@ -110,7 +104,6 @@ export default function StudentResourcesPage() {
 
     return (
         <div className="min-h-screen bg-slate-50/50 -m-6 pb-20">
-            {/* Premium Mesh Hero Section */}
             <div className="mesh-gradient h-64 w-full flex flex-col items-center justify-center relative overflow-hidden px-6 rounded-b-[4rem] shadow-2xl">
                 <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]"></div>
                 <div className="relative z-10 text-center space-y-3 pt-0">
@@ -124,7 +117,6 @@ export default function StudentResourcesPage() {
             </div>
 
             <div className="max-w-7xl mx-auto px-6 -mt-16 relative z-20 space-y-12">
-                {/* Global Error Banner */}
                 {error && !showBookingModal && (
                     <div className="bg-red-500/10 border border-red-500/20 backdrop-blur-md rounded-2xl p-4 flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
                         <div className="bg-red-500 p-2 rounded-xl">
@@ -135,7 +127,6 @@ export default function StudentResourcesPage() {
                     </div>
                 )}
 
-                {/* Futuristic Filter Architecture */}
                 <div className="glass-morphism rounded-[2rem] p-4 flex flex-col lg:flex-row items-center gap-4 transition-all hover:shadow-2xl hover:bg-white/80 border-white/60 group">
                     <div className="flex-1 w-full relative">
                         <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={20} />
@@ -170,7 +161,6 @@ export default function StudentResourcesPage() {
                     </div>
                 </div>
 
-                {/* Immersive Loading State */}
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-32 space-y-4">
                         <div className="relative">
@@ -180,7 +170,6 @@ export default function StudentResourcesPage() {
                         <span className="text-slate-400 font-black uppercase tracking-[0.3em] text-sm animate-pulse">Synchronizing Resources...</span>
                     </div>
                 ) : resources.length === 0 ? (
-                    /* Elegant Empty State */
                     <div className="text-center py-32 glass-morphism rounded-[3rem] border-dashed border-2 border-slate-200">
                         <div className="bg-slate-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                             <Search size={40} className="text-slate-300" />
@@ -190,7 +179,6 @@ export default function StudentResourcesPage() {
                     </div>
                 ) : (
                     <>
-                        {/* High-End Resources Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mt-4">
                             {resources.map(r => (
                                 <div 
@@ -201,7 +189,6 @@ export default function StudentResourcesPage() {
                                     }}
                                     className="group bg-white rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden cursor-pointer hover:-translate-y-2 border border-slate-100"
                                 >
-                                    {/* Immersive Card Header */}
                                     <div className={`h-44 relative flex items-center justify-center overflow-hidden bg-gradient-to-br ${
                                         r.type === 'LECTURE_HALL' ? 'from-blue-600 to-indigo-700' :
                                         r.type === 'LAB' ? 'from-emerald-500 to-teal-700' :
@@ -220,7 +207,6 @@ export default function StudentResourcesPage() {
                                         </div>
                                     </div>
 
-                                    {/* Refined Card Content */}
                                     <div className="p-8 space-y-6">
                                         <div className="space-y-1">
                                             <h3 className="text-2xl font-black text-slate-900 leading-tight group-hover:text-blue-600 transition-colors uppercase tracking-tight">{r.name}</h3>
@@ -259,46 +245,45 @@ export default function StudentResourcesPage() {
                             ))}
                         </div>
 
-                    {/* Modern Pagination Architecture */}
-                    {pagination.totalPages > 1 && (
-                        <div className="flex flex-col md:flex-row items-center justify-between glass-morphism p-6 rounded-[2rem] border-white/60 gap-4">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                                Showing <span className="text-blue-600">{resources.length > 0 ? pagination.page * pagination.size + 1 : 0} — {Math.min((pagination.page + 1) * pagination.size, pagination.totalElements)}</span> of <span className="text-slate-800">{pagination.totalElements}</span> resources
-                            </p>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => handlePageChange(pagination.page - 1)}
-                                    disabled={pagination.page === 0}
-                                    className="px-6 py-3 rounded-xl border-2 border-slate-100 text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                                >
-                                    Previous
-                                </button>
-                                <div className="flex items-center gap-2">
-                                    {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => (
-                                        <button
-                                            key={i}
-                                            onClick={() => handlePageChange(i)}
-                                            className={`w-10 h-10 rounded-xl text-xs font-black transition-all ${pagination.page === i ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 scale-110' : 'bg-slate-50 text-slate-400 hover:bg-white hover:text-slate-800'}`}
-                                        >
-                                            {i + 1}
-                                        </button>
-                                    ))}
+                        {pagination.totalPages > 1 && (
+                            <div className="flex flex-col md:flex-row items-center justify-between glass-morphism p-6 rounded-[2rem] border-white/60 gap-4">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                    Showing <span className="text-blue-600">{resources.length > 0 ? pagination.page * pagination.size + 1 : 0} — {Math.min((pagination.page + 1) * pagination.size, pagination.totalElements)}</span> of <span className="text-slate-800">{pagination.totalElements}</span> resources
+                                </p>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => handlePageChange(pagination.page - 1)}
+                                        disabled={pagination.page === 0}
+                                        className="px-6 py-3 rounded-xl border-2 border-slate-100 text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        Previous
+                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => handlePageChange(i)}
+                                                className={`w-10 h-10 rounded-xl text-xs font-black transition-all ${pagination.page === i ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 scale-110' : 'bg-slate-50 text-slate-400 hover:bg-white hover:text-slate-800'}`}
+                                            >
+                                                {i + 1}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <button
+                                        onClick={() => handlePageChange(pagination.page + 1)}
+                                        disabled={pagination.page >= pagination.totalPages - 1}
+                                        className="px-6 py-3 rounded-xl border-2 border-slate-100 text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        Next
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={() => handlePageChange(pagination.page + 1)}
-                                    disabled={pagination.page >= pagination.totalPages - 1}
-                                    className="px-6 py-3 rounded-xl border-2 border-slate-100 text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                                >
-                                    Next
-                                </button>
                             </div>
-                        </div>
-                    )}
-                </>
-            )}
+                        )}
+                    </>
+                )}
             </div>
 
-            {/* Premium Detail Modal */}
+            {/* Selected Resource Detail Modal */}
             {selectedResource && (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-500">
                     <div className="bg-white/90 backdrop-blur-xl rounded-[3rem] shadow-2xl w-full max-w-xl overflow-hidden border border-white/40 animate-in zoom-in-95 duration-300">
@@ -371,7 +356,7 @@ export default function StudentResourcesPage() {
                 </div>
             )}
 
-            {/* High-End Booking Modal */}
+            {/* Booking Modal */}
             {showBookingModal && (
                 <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-[60] backdrop-blur-md animate-in fade-in duration-300">
                     <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
@@ -419,11 +404,27 @@ export default function StudentResourcesPage() {
 
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Target Sequence Date</label>
-                                <input 
-                                    required name="bookingDate" value={bookingData.bookingDate} onChange={handleBookingChange}
-                                    type="date" className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/5 transition-all shadow-inner"
-                                    min={new Date().toISOString().split('T')[0]}
-                                />
+                                <div className="relative">
+                                    <DatePicker
+                                        ref={datePickerRef}
+                                        selected={new Date(bookingData.bookingDate)}
+                                        onChange={(date) => setBookingData(prev => ({ 
+                                            ...prev, 
+                                            bookingDate: date.toISOString().split('T')[0] 
+                                        }))}
+                                        dateFormat="yyyy-MM-dd"
+                                        minDate={new Date()}
+                                        className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/5 transition-all shadow-inner"
+                                        wrapperClassName="w-full"
+                                    />
+                                    <button 
+                                        type="button" 
+                                        onClick={() => datePickerRef.current.setOpen(true)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors"
+                                    >
+                                        <Calendar size={20} />
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-6">
