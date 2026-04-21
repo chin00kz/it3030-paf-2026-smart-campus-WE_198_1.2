@@ -88,4 +88,13 @@ public class ResourceBookingController {
                     .body(Map.of("error", "Cancel Failed", "message", e.getMessage()));
         }
     }
+
+    /** Student: get weekly availability preview */
+    @GetMapping("/resource/{resourceId}/weekly-availability")
+    public ResponseEntity<List<Map<String, Object>>> getWeeklyAvailability(
+            @PathVariable Long resourceId, 
+            @RequestParam(required = false) String date) {
+        java.time.LocalDate targetDate = date != null ? java.time.LocalDate.parse(date) : java.time.LocalDate.now();
+        return ResponseEntity.ok(bookingService.getWeeklyAvailabilityPreview(resourceId, targetDate));
+    }
 }

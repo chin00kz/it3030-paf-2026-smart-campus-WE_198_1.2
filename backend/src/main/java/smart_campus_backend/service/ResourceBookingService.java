@@ -8,6 +8,7 @@ import smart_campus_backend.repository.ResourceBookingRepository;
 import smart_campus_backend.repository.ResourceRepository;
 
 import jakarta.annotation.PostConstruct;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,6 +60,14 @@ public class ResourceBookingService {
                     existing.getEndTime(), 
                     dto.getBookingDate()
                 ));
+            }
+        }
+
+        String allowedDays = resource.getAvailableDays();
+        if (allowedDays != null && !allowedDays.isEmpty()) {
+            String dayOfWeek = dto.getBookingDate().getDayOfWeek().name();
+            if (!allowedDays.contains(dayOfWeek)) {
+                throw new IllegalStateException("This asset is strictly unavailable on " + dayOfWeek + "s.");
             }
         }
 
@@ -127,6 +136,46 @@ public class ResourceBookingService {
         }
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
+    }
+
+    public List<java.util.Map<String, Object>> getWeeklyAvailabilityPreview(Long resourceId, LocalDate date) {
+        Resource resource = resourceRepository.findById(resourceId).orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
+        String allowedDays = resource.getAvailableDays();
+        
+        LocalDate monday = date.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+        LocalDate sunday = monday.plusDays(6);
+
+        List<ResourceBooking> bookings = bookingRepository.findByResourceIdAndBookingDateBetweenAndStatusIn(
+                resourceId, monday, sunday, List.of(BookingStatus.CONFIRMED, BookingStatus.PENDING)
+        );
+
+        List<java.util.Map<String, Object>> availability = new java.util.ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            LocalDate currentDay = monday.plusDays(i);
+            String dayName = currentDay.getDayOfWeek().name();
+            
+            // Default to allowed if string is somehow null, otherwise check contents
+            boolean isAllowed = allowedDays == null || allowedDays.isEmpty() || allowedDays.contains(dayName);
+            
+            java.util.Map<String, Object> dayInfo = new java.util.HashMap<>();
+            // Fix string representation for T and S
+            String letter = dayName.substring(0, 1);
+            if (dayName.equals("THURSDAY")) letter = "Th";
+            if (dayName.equals("SUNDAY")) letter = "Su";
+            
+            dayInfo.put("day", letter);
+            dayInfo.put("fullDay", dayName);
+            dayInfo.put("date", currentDay.toString());
+            
+            if (!isAllowed || resource.getStatus() == ResourceStatus.UNAVAILABLE) {
+                dayInfo.put("status", "OFFLINE");
+            } else {
+                boolean hasBooking = bookings.stream().anyMatch(b -> b.getBookingDate().equals(currentDay));
+                dayInfo.put("status", hasBooking ? "BOOKED" : "AVAILABLE");
+            }
+            availability.add(dayInfo);
+        }
+        return availability;
     }
 
     private ResourceBookingDTO mapToDto(ResourceBooking b) {

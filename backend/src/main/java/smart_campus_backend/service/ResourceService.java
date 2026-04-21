@@ -110,6 +110,7 @@ public class ResourceService {
         resource.setAvailabilityStartTime(dto.getAvailabilityStartTime());
         resource.setAvailabilityEndTime(dto.getAvailabilityEndTime());
         resource.setStatus(dto.getStatus());
+        resource.setAvailableDays(dto.getAvailableDays());
         
         return mapToDto(resourceRepository.save(resource));
     }
@@ -177,6 +178,7 @@ public class ResourceService {
         dto.setAvailabilityStartTime(entity.getAvailabilityStartTime());
         dto.setAvailabilityEndTime(entity.getAvailabilityEndTime());
         dto.setStatus(entity.getStatus());
+        dto.setAvailableDays(entity.getAvailableDays());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
         return dto;
@@ -191,6 +193,7 @@ public class ResourceService {
         entity.setAvailabilityStartTime(dto.getAvailabilityStartTime());
         entity.setAvailabilityEndTime(dto.getAvailabilityEndTime());
         entity.setStatus(dto.getStatus());
+        entity.setAvailableDays(dto.getAvailableDays());
         return entity;
     }
 }

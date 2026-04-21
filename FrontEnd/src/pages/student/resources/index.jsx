@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getResources, getErrorMessage } from "@/api/resourceApi";
-import { createBooking } from "@/api/bookingApi";
+import { createBooking, getWeeklyAvailabilityPreview } from "@/api/bookingApi";
 import { Search, AlertCircle, Loader, MapPin, Users, Clock, X, Calendar, Plus, ChevronRight } from "lucide-react";
 
 export default function StudentResourcesPage() {
@@ -10,6 +10,8 @@ export default function StudentResourcesPage() {
     const [error, setError] = useState(null);
     const [pagination, setPagination] = useState({ page: 0, size: 10, totalPages: 0, totalElements: 0 });
     const [selectedResource, setSelectedResource] = useState(null);
+    const [weeklyAvailability, setWeeklyAvailability] = useState([]);
+    const [loadingAvailability, setLoadingAvailability] = useState(false);
 
     const resourceTypes = ["LECTURE_HALL", "LAB", "MEETING_ROOM", "EQUIPMENT"];
     const resourceStatuses = ["AVAILABLE", "UNAVAILABLE"];
@@ -28,6 +30,26 @@ export default function StudentResourcesPage() {
     useEffect(() => {
         loadResources();
     }, [filters, pagination.page]);
+
+    useEffect(() => {
+        if (selectedResource) {
+            fetchAvailability(selectedResource.id);
+        } else {
+            setWeeklyAvailability([]);
+        }
+    }, [selectedResource]);
+
+    const fetchAvailability = async (id) => {
+        setLoadingAvailability(true);
+        try {
+            const data = await getWeeklyAvailabilityPreview(id);
+            setWeeklyAvailability(data);
+        } catch (error) {
+            console.error("Failed to fetch weekly availability", error);
+        } finally {
+            setLoadingAvailability(false);
+        }
+    };
 
     const loadResources = async () => {
         setLoading(true);
@@ -348,7 +370,30 @@ export default function StudentResourcesPage() {
                                 </div>
                             </div>
 
-                            <div className="pt-8 flex gap-5 border-t border-slate-100">
+                            <div className="pt-2 pb-2">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Weekly Preview (Mon-Sun)</p>
+                                {loadingAvailability ? (
+                                    <div className="flex gap-2 animate-pulse">
+                                        {[1,2,3,4,5,6,7].map(i => <div key={i} className="flex-1 h-3 bg-slate-200 rounded-full"></div>)}
+                                    </div>
+                                ) : (
+                                    <div className="flex gap-2">
+                                        {weeklyAvailability.map((info, index) => {
+                                            return (
+                                                <div key={index} className="flex-1 flex flex-col items-center gap-1 group relative">
+                                                    <div className={`w-full h-3 rounded-full shadow-inner transition-transform group-hover:scale-110 ${info.status === 'AVAILABLE' ? 'bg-emerald-400' : info.status === 'BOOKED' ? 'bg-red-400' : 'bg-slate-300'}`}></div>
+                                                    <span className="text-[10px] font-black text-slate-400">{info.day}</span>
+                                                    <div className="absolute -top-6 bg-slate-800 text-white text-[10px] px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 font-bold whitespace-nowrap pointer-events-none transition-opacity z-50">
+                                                        {info.status === 'AVAILABLE' ? 'Available' : info.status === 'BOOKED' ? 'Booked' : 'Offline'}
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="pt-6 flex gap-5 border-t border-slate-100">
                                 <button 
                                     onClick={() => setSelectedResource(null)}
                                     className="flex-1 px-8 py-5 rounded-2xl bg-slate-50 border border-slate-200 font-black text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-all uppercase tracking-widest text-xs shadow-sm"
