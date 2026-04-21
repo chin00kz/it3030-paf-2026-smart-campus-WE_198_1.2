@@ -10,6 +10,8 @@ export default function ResourcesPage() {
     const [filters, setFilters] = useState({ type: "", capacity: "", location: "", name: "", status: "" });
     const [showForm, setShowForm] = useState(false);
     const [showBulkUpload, setShowBulkUpload] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [suggestions, setSuggestions] = useState([]);
     const [formData, setFormData] = useState(null);
     const [formErrors, setFormErrors] = useState({});
     const [isEditing, setIsEditing] = useState(false);
@@ -51,6 +53,14 @@ export default function ResourcesPage() {
         const { name, value } = e.target;
         setFilters(prev => ({ ...prev, [name]: value }));
         setPagination(prev => ({ ...prev, page: 0 })); // Reset to first page when filter changes
+
+        if (name === 'name') {
+            if (value.trim().length > 0) {
+                getResources({ name: value }, 0, 5).then(res => setSuggestions(res.content || []));
+            } else {
+                setSuggestions([]);
+            }
+        }
     };
 
     const handleFormChange = (e) => {
@@ -219,19 +229,46 @@ export default function ResourcesPage() {
                 )}
 
                 {/* Compact Filter Architecture */}
-                <div className="glass-morphism rounded-2xl p-5 border-white/60 space-y-3 shadow-lg">
+                <div className="glass-morphism rounded-2xl p-5 border-white/60 space-y-3 shadow-lg relative z-50">
                     <div className="flex items-center gap-2 px-1">
                         <Search size={18} className="text-blue-500" />
                         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Registry Filters</h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                        <div className="space-y-2">
+                        <div className="space-y-2 relative z-50">
                             <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Resource Alias</label>
                             <input
-                                type="text" name="name" value={filters.name} onChange={handleFilterChange}
+                                type="text" name="name" value={filters.name} 
+                                onChange={(e) => {
+                                    handleFilterChange(e);
+                                    setShowSuggestions(true);
+                                }}
+                                onFocus={() => setShowSuggestions(true)}
+                                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                                 placeholder="Search..."
                                 className="w-full bg-white/50 border-none rounded-xl px-4 py-2.5 text-sm font-bold focus:bg-white focus:ring-4 focus:ring-blue-500/5 transition-all shadow-inner"
                             />
+                            {showSuggestions && filters.name && suggestions.length > 0 && (
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-2xl overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2">
+                                    {suggestions.map(r => (
+                                        <button 
+                                            key={r.id}
+                                            type="button"
+                                            onClick={() => {
+                                                setFilters(prev => ({ ...prev, name: r.name }));
+                                                setShowSuggestions(false);
+                                            }}
+                                            className="w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 flex items-center gap-3 group"
+                                        >
+                                            <Search size={14} className="text-slate-300 group-hover:text-blue-500 transition-colors" />
+                                            <div>
+                                                <span className="block text-sm font-black text-slate-700">{r.name}</span>
+                                                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">{r.type.replace(/_/g, ' ')}</span>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                         <div className="space-y-2">
                             <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Classification</label>
