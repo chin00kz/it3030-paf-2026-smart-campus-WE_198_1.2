@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getResources, getErrorMessage } from "@/api/resourceApi";
 import { createBooking } from "@/api/bookingApi";
-import { Search, AlertCircle, Loader, MapPin, Users, Clock, X, Calendar, Plus } from "lucide-react";
+import { Search, AlertCircle, Loader, MapPin, Users, Clock, X, Calendar, ChevronRight } from "lucide-react";
 
 export default function StudentResourcesPage() {
     const [resources, setResources] = useState([]);
@@ -53,6 +53,11 @@ export default function StudentResourcesPage() {
         const { name, value } = e.target;
         setFilters(prev => ({ ...prev, [name]: value }));
         setPagination(prev => ({ ...prev, page: 0 }));
+    };
+
+    const handlePageChange = (newPage) => {
+        if (newPage < 0 || newPage >= pagination.totalPages) return;
+        setPagination(prev => ({ ...prev, page: newPage }));
     };
 
     const handleBookingChange = (e) => {
