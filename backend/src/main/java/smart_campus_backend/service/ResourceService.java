@@ -12,21 +12,28 @@ import smart_campus_backend.model.ResourceStatus;
 import smart_campus_backend.dto.ResourceDTO;
 import smart_campus_backend.exception.ResourceNotFoundException;
 import smart_campus_backend.dto.ResourceInsightsDTO;
+import smart_campus_backend.model.BulkUploadRecord;
+import smart_campus_backend.repository.BulkUploadRecordRepository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ResourceService {
 
     private final ResourceRepository resourceRepository;
+    private final BulkUploadRecordRepository bulkUploadRecordRepository;
     
     private static final int DEFAULT_PAGE_SIZE = 10;
     private static final int MAX_PAGE_SIZE = 100;
 
-    public ResourceService(ResourceRepository resourceRepository) {
+    public ResourceService(ResourceRepository resourceRepository, BulkUploadRecordRepository bulkUploadRecordRepository) {
         this.resourceRepository = resourceRepository;
+        this.bulkUploadRecordRepository = bulkUploadRecordRepository;
     }
 
     public ResourceDTO createResource(ResourceDTO dto) {
@@ -35,6 +42,7 @@ public class ResourceService {
         return mapToDto(resourceRepository.save(entity));
     }
 
+    @Transactional
     public List<ResourceDTO> createResources(List<ResourceDTO> dtos) {
         if (dtos == null || dtos.isEmpty()) {
             throw new IllegalArgumentException("Resource list cannot be null or empty");
@@ -43,14 +51,45 @@ public class ResourceService {
         // Validate all first to ensure "all or nothing" consistency
         dtos.forEach(this::validateResourceDTO);
         
+        String batchId = UUID.randomUUID().toString();
+        String defaultFileName = "Batch Upload - " + LocalDateTime.now().toString().replace("T", " ").substring(0, 16);
+        
+        BulkUploadRecord record = BulkUploadRecord.builder()
+                .batchId(batchId)
+                .fileName(defaultFileName)
+                .resourceCount(dtos.size())
+                .build();
+        
+        bulkUploadRecordRepository.save(record);
+        
         List<Resource> entities = dtos.stream()
                 .map(this::mapToEntity)
                 .collect(Collectors.toList());
+        
+        // Assign batchId to each entity
+        entities.forEach(entity -> entity.setBatchId(batchId));
         
         return resourceRepository.saveAll(entities)
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
+    }
+
+    public List<BulkUploadRecord> getBulkUploadHistory() {
+        return bulkUploadRecordRepository.findAll(Sort.by(Sort.Direction.DESC, "uploadTimestamp"));
+    }
+
+    @Transactional
+    public void deleteBulkUploadBatch(String batchId) {
+        // First delete resources in batch
+        List<Resource> resources = resourceRepository.findAll().stream()
+                .filter(r -> batchId.equals(r.getBatchId()))
+                .collect(Collectors.toList());
+        
+        resourceRepository.deleteAll(resources);
+        
+        // Then delete the record
+        bulkUploadRecordRepository.deleteByBatchId(batchId);
     }
 
     public Page<ResourceDTO> getResources(String type, Integer capacity, String location, String name, 
