@@ -71,6 +71,16 @@ export const deleteResource = async (id) => {
     }
 };
 
+export const getResourceInsights = async () => {
+    try {
+        const response = await axios.get(`${BASE_URL}/insights`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching resource insights:', error);
+        throw error;
+    }
+};
+
 /**
  * Helper function to extract error message from API response
  */
