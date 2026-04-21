@@ -7,6 +7,7 @@ import smart_campus_backend.model.*;
 import smart_campus_backend.repository.ResourceBookingRepository;
 import smart_campus_backend.repository.ResourceRepository;
 
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,7 +23,7 @@ public class ResourceBookingService {
         this.resourceRepository = resourceRepository;
     }
 
-    @javax.annotation.PostConstruct
+    @PostConstruct
     public void cleanupBookedStatuses() {
         // Migration: Convert any remaining BOOKED statuses to AVAILABLE 
         // to allow them to be booked via time-slots.
