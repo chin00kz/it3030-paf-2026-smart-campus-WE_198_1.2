@@ -70,6 +70,7 @@ export default function ResourcesPage() {
         if (formData.capacity > 10000) errors.capacity = "Capacity cannot exceed 10000";
         if (!formData.location || formData.location.trim() === "") errors.location = "Location is required";
         if (!formData.status) errors.status = "Status is required";
+        if (!formData.availableDays || formData.availableDays.trim() === "") errors.availableDays = "At least one available day is required";
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
     };
@@ -82,7 +83,8 @@ export default function ResourcesPage() {
             location: "",
             status: "AVAILABLE",
             availabilityStartTime: "08:00",
-            availabilityEndTime: "18:00"
+            availabilityEndTime: "18:00",
+            availableDays: "MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY,SUNDAY"
         });
         setFormErrors({});
         setIsEditing(false);
@@ -93,7 +95,8 @@ export default function ResourcesPage() {
         setFormData({
             ...resource,
             availabilityStartTime: resource.availabilityStartTime || "08:00",
-            availabilityEndTime: resource.availabilityEndTime || "18:00"
+            availabilityEndTime: resource.availabilityEndTime || "18:00",
+            availableDays: resource.availableDays || "MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY,SUNDAY"
         });
         setFormErrors({});
         setIsEditing(true);
@@ -392,31 +395,31 @@ export default function ResourcesPage() {
                 {/* Compact Asset Management Modal */}
                 {showForm && (
                     <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
-                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200">
-                            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white flex items-center justify-between">
+                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[95vh] overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200">
+                            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-5 md:p-6 text-white flex items-center justify-between shrink-0">
                                 <h2 className="text-xl font-black uppercase tracking-tighter italic">
                                     {isEditing ? 'Sync' : 'Initialize'} <span className="text-emerald-300">Asset</span>
                                 </h2>
-                                <button onClick={() => setShowForm(false)} className="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all">
+                                <button type="button" onClick={() => setShowForm(false)} className="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all">
                                     <X size={20} />
                                 </button>
                             </div>
-                            <form onSubmit={handleSubmit} className="p-8 space-y-5">
+                            <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-4 overflow-y-auto">
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Designation Alias</label>
                                     <input
                                         type="text" name="name" value={formData?.name || ""} onChange={handleFormChange}
-                                        className={`w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner ${formErrors.name ? 'ring-1 ring-red-500' : ''}`}
+                                        className={`w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner ${formErrors.name ? 'ring-1 ring-red-500' : ''}`}
                                     />
                                     {formErrors.name && <p className="text-xs text-red-500 font-bold px-1 uppercase tracking-wider">{formErrors.name}</p>}
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-5">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Classification Pool</label>
                                         <select
                                             name="type" value={formData?.type || ""} onChange={handleFormChange}
-                                            className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
+                                            className="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
                                         >
                                             {resourceTypes.map(t => <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>)}
                                         </select>
@@ -425,7 +428,7 @@ export default function ResourcesPage() {
                                         <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Capacity Limit</label>
                                         <input
                                             type="number" min="1" max="10000" name="capacity" value={formData?.capacity || ""} onChange={handleFormChange}
-                                            className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
+                                            className="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
                                         />
                                     </div>
                                 </div>
@@ -434,44 +437,71 @@ export default function ResourcesPage() {
                                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Deployment Sector</label>
                                     <input
                                         type="text" name="location" value={formData?.location || ""} onChange={handleFormChange}
-                                        className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
+                                        className="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-5">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Ops Start</label>
                                         <input
                                             type="time" name="availabilityStartTime" value={formData?.availabilityStartTime || "08:00"} onChange={handleFormChange}
-                                            className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
+                                            className="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
                                         />
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Ops End</label>
                                         <input
                                             type="time" name="availabilityEndTime" value={formData?.availabilityEndTime || "18:00"} onChange={handleFormChange}
-                                            className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
+                                            className="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
                                         />
                                     </div>
+                                </div>
+
+                                <div className="space-y-1.5 pt-1">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Available Days</label>
+                                    <div className="flex gap-1.5">
+                                        {['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'].map((day) => {
+                                            const currentDays = formData?.availableDays ? formData.availableDays.split(',') : [];
+                                            const isSelected = currentDays.includes(day);
+                                            const shortDay = day.substring(0, 3);
+                                            return (
+                                                <button
+                                                    key={day}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newDays = isSelected 
+                                                            ? currentDays.filter(d => d !== day)
+                                                            : [...currentDays, day];
+                                                        setFormData(prev => ({...prev, availableDays: newDays.join(',')}));
+                                                    }}
+                                                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${isSelected ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+                                                >
+                                                    {shortDay}
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                    {formErrors.availableDays && <p className="text-xs text-red-500 font-bold px-1 uppercase tracking-wider">{formErrors.availableDays}</p>}
                                 </div>
 
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Asset Status</label>
                                     <select
                                         name="status" value={formData?.status || ""} onChange={handleFormChange}
-                                        className="w-full bg-slate-50 border-none rounded-xl p-3.5 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
+                                        className="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/10 transition-all shadow-inner"
                                     >
                                         {resourceStatuses.map(s => <option key={s} value={s}>{s === 'AVAILABLE' ? 'Available' : 'Unavailable'}</option>)}
                                     </select>
                                 </div>
 
-                                <div className="pt-4 flex gap-4">
-                                    <button type="button" onClick={() => setShowForm(false)} className="flex-1 px-6 py-3 rounded-xl border border-slate-200 font-black text-slate-400 hover:bg-slate-50 transition-all uppercase tracking-widest text-xs">
+                                <div className="pt-2 flex gap-4 mt-2">
+                                    <button type="button" onClick={() => setShowForm(false)} className="flex-1 px-6 py-2.5 rounded-xl border border-slate-200 font-black text-slate-400 hover:bg-slate-50 transition-all uppercase tracking-widest text-xs">
                                         Abort
                                     </button>
                                     <button
                                         type="submit" disabled={submitting}
-                                        className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl font-black uppercase tracking-[0.1em] text-xs hover:shadow-lg transition-all disabled:opacity-50 flex justify-center items-center gap-2"
+                                        className="flex-1 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl font-black uppercase tracking-[0.1em] text-xs hover:shadow-lg transition-all disabled:opacity-50 flex justify-center items-center gap-2"
                                     >
                                         {submitting ? <Loader className="animate-spin" size={16} /> : (isEditing ? 'Commit' : 'Launch')}
                                     </button>

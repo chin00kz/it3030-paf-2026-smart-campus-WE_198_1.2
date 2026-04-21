@@ -61,3 +61,13 @@ export const getBookingsByResource = async (resourceId) => {
         throw error;
     }
 };
+
+export const getWeeklyAvailabilityPreview = async (resourceId) => {
+    try {
+        const response = await axios.get(`${BASE_URL}/resource/${resourceId}/weekly-availability`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching weekly availability:', error);
+        throw error;
+    }
+};

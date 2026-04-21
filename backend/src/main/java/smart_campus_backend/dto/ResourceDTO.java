@@ -35,6 +35,8 @@ public class ResourceDTO {
     @NotNull(message = "Status is mandatory")
     private smart_campus_backend.model.ResourceStatus status;
 
+    private String availableDays;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
