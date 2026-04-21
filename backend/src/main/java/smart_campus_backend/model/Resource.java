@@ -44,4 +44,6 @@ public class Resource {
     @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    private String batchId;
 }

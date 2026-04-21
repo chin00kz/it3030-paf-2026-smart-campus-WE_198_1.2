@@ -5,6 +5,7 @@ import {
 import { Plus, Edit, Trash2, Search, X, AlertCircle, CheckCircle, Loader, Upload, FileText } from "lucide-react";
 import BulkUploadModal from "./BulkUploadModal";
 import ResourceInsightsModal from "./ResourceInsightsModal";
+import UploadHistoryModal from "./UploadHistoryModal";
 
 export default function ResourcesPage() {
     const [resources, setResources] = useState([]);
@@ -12,6 +13,7 @@ export default function ResourcesPage() {
     const [showForm, setShowForm] = useState(false);
     const [showBulkUpload, setShowBulkUpload] = useState(false);
     const [showInsights, setShowInsights] = useState(false);
+    const [showHistory, setShowHistory] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [suggestions, setSuggestions] = useState([]);
     const [formData, setFormData] = useState(null);
@@ -190,6 +192,12 @@ export default function ResourcesPage() {
                         </p>
                     </div>
                     <div className="flex gap-3">
+                        <button
+                            onClick={() => setShowHistory(true)}
+                            className="bg-emerald-600/20 text-emerald-100 border border-emerald-500/30 backdrop-blur-md px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-emerald-600 hover:text-white transition-all shadow-lg flex items-center gap-2 group"
+                        >
+                            <FileText size={18} className="group-hover:-translate-y-0.5 transition-transform" /> History
+                        </button>
                         <button
                             onClick={() => setShowInsights(true)}
                             className="bg-slate-900/10 text-slate-800 border border-slate-200 backdrop-blur-md px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-slate-900 hover:text-white transition-all shadow-lg flex items-center gap-2 group"
@@ -566,6 +574,13 @@ export default function ResourcesPage() {
                 {showInsights && (
                     <ResourceInsightsModal 
                         onClose={() => setShowInsights(false)}
+                    />
+                )}
+
+                {showHistory && (
+                    <UploadHistoryModal 
+                        onClose={() => setShowHistory(false)}
+                        onDeleteSuccess={loadResources}
                     />
                 )}
             </div>
