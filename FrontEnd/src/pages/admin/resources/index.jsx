@@ -2,14 +2,16 @@ import { useState, useEffect } from "react";
 import {
     getResources, createResource, updateResource, deleteResource, getErrorMessage
 } from "@/api/resourceApi";
-import { Plus, Edit, Trash2, Search, X, AlertCircle, CheckCircle, Loader, Upload } from "lucide-react";
+import { Plus, Edit, Trash2, Search, X, AlertCircle, CheckCircle, Loader, Upload, FileText } from "lucide-react";
 import BulkUploadModal from "./BulkUploadModal";
+import ResourceInsightsModal from "./ResourceInsightsModal";
 
 export default function ResourcesPage() {
     const [resources, setResources] = useState([]);
     const [filters, setFilters] = useState({ type: "", capacity: "", location: "", name: "", status: "" });
     const [showForm, setShowForm] = useState(false);
     const [showBulkUpload, setShowBulkUpload] = useState(false);
+    const [showInsights, setShowInsights] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [suggestions, setSuggestions] = useState([]);
     const [formData, setFormData] = useState(null);
@@ -188,6 +190,12 @@ export default function ResourcesPage() {
                         </p>
                     </div>
                     <div className="flex gap-3">
+                        <button
+                            onClick={() => setShowInsights(true)}
+                            className="bg-slate-900/10 text-slate-800 border border-slate-200 backdrop-blur-md px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-slate-900 hover:text-white transition-all shadow-lg flex items-center gap-2 group"
+                        >
+                            <FileText size={18} className="group-hover:-translate-y-0.5 transition-transform" /> Insights
+                        </button>
                         <button
                             onClick={() => setShowBulkUpload(true)}
                             className="bg-blue-600/20 text-white border border-white/20 backdrop-blur-md px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-all shadow-lg flex items-center gap-2 group"
@@ -552,6 +560,12 @@ export default function ResourcesPage() {
                     <BulkUploadModal
                         onClose={() => setShowBulkUpload(false)}
                         onUploadSuccess={loadResources}
+                    />
+                )}
+
+                {showInsights && (
+                    <ResourceInsightsModal 
+                        onClose={() => setShowInsights(false)}
                     />
                 )}
             </div>

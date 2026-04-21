@@ -162,6 +162,22 @@ public class ResourceController {
     }
 
     /**
+     * Get resource insights
+     * @return Resource insights data
+     */
+    @GetMapping("/insights")
+    public ResponseEntity<?> getResourceInsights() {
+        try {
+            return ResponseEntity.ok(resourceService.getInsights());
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                new ErrorResponse("Internal Error", e.getMessage()),
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    /**
      * Inner class for error responses
      */
     public static class ErrorResponse {
