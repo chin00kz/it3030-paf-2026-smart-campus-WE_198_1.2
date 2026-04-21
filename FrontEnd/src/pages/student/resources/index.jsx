@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getResources, getErrorMessage } from "@/api/resourceApi";
 import { createBooking } from "@/api/bookingApi";
-import { Search, AlertCircle, Loader, MapPin, Users, Clock, X, Calendar, Plus } from "lucide-react";
+import { Search, AlertCircle, Loader, MapPin, Users, Clock, X, Calendar, Plus, ChevronRight } from "lucide-react";
 
 export default function StudentResourcesPage() {
     const [resources, setResources] = useState([]);
@@ -58,6 +58,12 @@ export default function StudentResourcesPage() {
     const handleBookingChange = (e) => {
         const { name, value } = e.target;
         setBookingData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handlePageChange = (newPage) => {
+        if (newPage >= 0 && newPage < pagination.totalPages) {
+            setPagination(prev => ({ ...prev, page: newPage }));
+        }
     };
 
     const handleBookingSubmit = async (e) => {
