@@ -81,6 +81,26 @@ export const getResourceInsights = async () => {
     }
 };
 
+export const getBulkUploadHistory = async () => {
+    try {
+        const response = await axios.get(`${BASE_URL}/bulk/history`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching upload history:', error);
+        throw error;
+    }
+};
+
+export const deleteBulkBatch = async (batchId) => {
+    try {
+        const response = await axios.delete(`${BASE_URL}/bulk/${batchId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting bulk batch:', error);
+        throw error;
+    }
+};
+
 /**
  * Helper function to extract error message from API response
  */

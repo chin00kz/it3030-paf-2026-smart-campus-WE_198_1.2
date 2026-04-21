@@ -178,6 +178,40 @@ public class ResourceController {
     }
 
     /**
+     * Get bulk upload history
+     * @return List of bulk upload records
+     */
+    @GetMapping("/bulk/history")
+    public ResponseEntity<?> getBulkUploadHistory() {
+        try {
+            return ResponseEntity.ok(resourceService.getBulkUploadHistory());
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                new ErrorResponse("Internal Error", e.getMessage()),
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    /**
+     * Delete a bulk upload batch
+     * @param batchId Unique identifier for the batch
+     * @return 204 No Content
+     */
+    @DeleteMapping("/bulk/{batchId}")
+    public ResponseEntity<?> deleteBulkUploadBatch(@PathVariable String batchId) {
+        try {
+            resourceService.deleteBulkUploadBatch(batchId);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                new ErrorResponse("Error deleting batch", e.getMessage()),
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    /**
      * Inner class for error responses
      */
     public static class ErrorResponse {
