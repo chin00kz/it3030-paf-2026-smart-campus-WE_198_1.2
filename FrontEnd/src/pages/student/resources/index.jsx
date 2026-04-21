@@ -12,6 +12,8 @@ export default function StudentResourcesPage() {
     const [selectedResource, setSelectedResource] = useState(null);
     const [weeklyAvailability, setWeeklyAvailability] = useState([]);
     const [loadingAvailability, setLoadingAvailability] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [suggestions, setSuggestions] = useState([]);
 
     const resourceTypes = ["LECTURE_HALL", "LAB", "MEETING_ROOM", "EQUIPMENT"];
     const resourceStatuses = ["AVAILABLE", "UNAVAILABLE"];
@@ -75,6 +77,14 @@ export default function StudentResourcesPage() {
         const { name, value } = e.target;
         setFilters(prev => ({ ...prev, [name]: value }));
         setPagination(prev => ({ ...prev, page: 0 }));
+
+        if (name === 'name') {
+            if (value.trim().length > 0) {
+                getResources({ name: value }, 0, 5).then(res => setSuggestions(res.content || []));
+            } else {
+                setSuggestions([]);
+            }
+        }
     };
 
     const handleBookingChange = (e) => {
@@ -159,17 +169,45 @@ export default function StudentResourcesPage() {
                 )}
 
                 {/* Futuristic Filter Architecture */}
-                <div className="glass-morphism rounded-[2rem] p-4 flex flex-col lg:flex-row items-center gap-4 transition-all hover:shadow-2xl hover:bg-white/80 border-white/60 group">
-                    <div className="flex-1 w-full relative">
+                <div className="glass-morphism rounded-[2rem] p-4 flex flex-col lg:flex-row items-center gap-4 transition-all hover:shadow-2xl hover:bg-white/80 border-white/60 group relative z-50">
+                    <div className="flex-1 w-full relative z-50">
                         <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={20} />
                         <input 
                             type="text" 
                             name="name" 
                             value={filters.name} 
-                            onChange={handleFilterChange}
+                            onChange={(e) => {
+                                handleFilterChange(e);
+                                setShowSuggestions(true);
+                            }}
+                            onFocus={() => setShowSuggestions(true)}
+                            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                             placeholder="Explore campus resources..."
                             className="w-full bg-white/40 border-none rounded-[1.5rem] pl-14 pr-6 py-3.5 transition-all text-slate-800 placeholder:text-slate-400 font-bold text-lg focus:ring-0 focus:bg-white shadow-inner"
                         />
+                        {showSuggestions && filters.name && suggestions.length > 0 && (
+                            <div className="absolute top-full left-0 right-0 mt-3 bg-white/90 backdrop-blur-xl border border-white/60 rounded-[1.5rem] shadow-2xl overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2">
+                                {suggestions.map(r => (
+                                    <button 
+                                        key={r.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setFilters(prev => ({ ...prev, name: r.name }));
+                                            setShowSuggestions(false);
+                                        }}
+                                        className="w-full text-left px-5 py-4 hover:bg-blue-50/50 transition-colors border-b border-slate-100/50 last:border-0 flex items-center gap-4 group/item"
+                                    >
+                                        <div className="w-10 h-10 rounded-full bg-slate-100 flex flex-shrink-0 items-center justify-center group-hover/item:bg-blue-100 transition-colors text-xl">
+                                            {getTypeIcon(r.type)}
+                                        </div>
+                                        <div>
+                                            <span className="block text-base font-black text-slate-800 group-hover/item:text-blue-700 transition-colors truncate">{r.name}</span>
+                                            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] truncate">{r.type.replace(/_/g, ' ')} • {r.location}</span>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     
                     <div className="flex flex-wrap items-center gap-6 w-full lg:w-auto">
