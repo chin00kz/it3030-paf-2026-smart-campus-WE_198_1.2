@@ -8,6 +8,9 @@ import AuditLogs from "@/pages/admin/audit-logs"
 import BannedUsers from "@/pages/admin/banned-users"
 import Reports from "@/pages/admin/reports"
 import LoginPage from "@/pages/login"
+import ResourcesPage from "@/pages/admin/resources/index"
+import AdminBookingsPage from "@/pages/admin/bookings/index"
+import StudentResourcesPage from "@/pages/student/resources/index"
 import ManagerDashboard from "@/pages/manager/dashboard"
 import TechnicianDashboard from "@/pages/technician/dashboard"
 import StudentDashboard from "@/pages/student/dashboard"
@@ -60,6 +63,8 @@ function App() {
           <Route path="audit-logs" element={<AuditLogs />} />
           <Route path="banned-users" element={<BannedUsers />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="resources" element={<ResourcesPage />} />
+          <Route path="bookings" element={<AdminBookingsPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
@@ -75,6 +80,7 @@ function App() {
         >
           <Route index element={<ManagerDashboard />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="resources" element={<ResourcesPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
@@ -104,6 +110,7 @@ function App() {
         >
           <Route index element={<StudentDashboard />} />
           <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="resources" element={<StudentResourcesPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
 

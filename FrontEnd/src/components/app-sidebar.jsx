@@ -88,6 +88,18 @@ const data = {
       icon: Bell,
     },
     {
+      title: "Resources",
+      url: "resources",
+      icon: BookOpen,
+      allowedRoles: ["ADMIN", "SUPER_ADMIN", "MANAGER", "USER"],
+    },
+    {
+      title: "Bookings",
+      url: "bookings",
+      icon: Calendar,
+      allowedRoles: ["ADMIN", "SUPER_ADMIN", "MANAGER"],
+    },
+    {
       title: "Settings",
       url: "settings", // relative - will be resolved per role in component
       icon: Settings,
