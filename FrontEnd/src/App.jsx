@@ -11,6 +11,7 @@ import LoginPage from "@/pages/login"
 import ResourcesPage from "@/pages/admin/resources/index"
 import AdminBookingsPage from "@/pages/admin/bookings/index"
 import StudentResourcesPage from "@/pages/student/resources/index"
+import MyBookings from "@/pages/student/MyBookings" // මෙතන import එක ඇතුළත් කළා
 import ManagerDashboard from "@/pages/manager/dashboard"
 import TechnicianDashboard from "@/pages/technician/dashboard"
 import StudentDashboard from "@/pages/student/dashboard"
@@ -36,8 +37,6 @@ function RootRedirect() {
 
 function App() {
   const [isMaintenance, setIsMaintenance] = import.meta.env.MODE === 'development' ? [false, () => {}] : [false, () => {}] // Initial state
-  // We'll actually use a hook or effect here if needed, but for now let's use the ProtectedRoute logic
-  // and a global interceptor in the background.
   
   return (
     <AuthProvider>
@@ -109,6 +108,7 @@ function App() {
           }
         >
           <Route index element={<StudentDashboard />} />
+          <Route path="my-bookings" element={<MyBookings />} /> {/* මෙතන Route එක ඇතුළත් කළා */}
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="resources" element={<StudentResourcesPage />} />
           <Route path="settings" element={<SettingsPage />} />

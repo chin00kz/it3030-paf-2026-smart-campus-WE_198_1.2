@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Calendar, Clock, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 export default function StudentDashboard() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [studentData, setStudentData] = useState(null);
 
@@ -54,28 +56,33 @@ export default function StudentDashboard() {
 
       {/* Main Dashboard Grid */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Active Bookings Stat */}
+        {/* Active Bookings Stat - Clickable */}
         <StatCard 
           title="Active Bookings" 
           value={studentData.activeBookings} 
           iconElement={<Calendar size={28} />} 
-          color="bg-blue-50 text-blue-600 border-blue-100" 
+          color="bg-blue-50 text-blue-600 border-blue-100"
+          onClick={() => navigate('my-bookings')}
         />
 
-        {/* My Bookings Action */}
+        {/* My Bookings Action - Clickable */}
         <ActionCard 
           title="My Bookings" 
           description="Access your upcoming schedule and modify your reservations."
           iconElement={<Clock size={28} />}
+          onClick={() => navigate('my-bookings')}
         />
       </div>
     </div>
   );
 }
 
-function StatCard({ title, value, iconElement, color }) {
+function StatCard({ title, value, iconElement, color, onClick }) {
   return (
-    <Card className={`p-8 flex items-center gap-6 border-2 transition-all hover:shadow-md ${color}`}>
+    <Card 
+      onClick={onClick}
+      className={`p-8 flex items-center gap-6 border-2 transition-all cursor-pointer hover:shadow-md ${color}`}
+    >
       <div className="p-4 bg-white rounded-2xl shadow-sm leading-none">
         {iconElement}
       </div>
@@ -87,9 +94,12 @@ function StatCard({ title, value, iconElement, color }) {
   );
 }
 
-function ActionCard({ title, description, iconElement }) {
+function ActionCard({ title, description, iconElement, onClick }) {
   return (
-    <Card className="group p-8 flex flex-col justify-center border-2 border-slate-100 hover:border-primary hover:shadow-lg transition-all cursor-pointer bg-white">
+    <Card 
+      onClick={onClick}
+      className="group p-8 flex flex-col justify-center border-2 border-slate-100 hover:border-primary hover:shadow-lg transition-all cursor-pointer bg-white"
+    >
       <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-600 mb-4 group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-sm">
         {iconElement}
       </div>
