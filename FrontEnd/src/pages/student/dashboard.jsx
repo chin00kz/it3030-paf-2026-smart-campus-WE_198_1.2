@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, BookOpen, Clock, History, Loader2, UserCheck, ShieldAlert } from "lucide-react";
+import { Calendar, BookOpen, Clock, History, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 export default function StudentDashboard() {
@@ -47,8 +47,8 @@ export default function StudentDashboard() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2">
-        <StatCard title="Active Bookings" value={studentData.activeBookings} icon={Calendar} color="bg-blue-100 text-blue-600" />
-        <StatCard title="Total Bookings" value={studentData.totalBookings} icon={History} color="bg-purple-100 text-purple-600" />
+        <StatCard title="Active Bookings" value={studentData.activeBookings} iconElement={<Calendar size={24} />} color="bg-blue-100 text-blue-600" />
+        <StatCard title="Total Bookings" value={studentData.totalBookings} iconElement={<History size={24} />} color="bg-purple-100 text-purple-600" />
       </div>
 
       {/* Main Actions */}
@@ -56,22 +56,22 @@ export default function StudentDashboard() {
         <ActionCard 
           title="Facilities Catalogue" 
           description="Browse labs, study rooms, and other resources. Book your spot in seconds."
-          icon={BookOpen}
+          iconElement={<BookOpen size={24} />}
         />
         <ActionCard 
           title="My Bookings" 
           description="View your upcoming schedule, modify or cancel existing facility bookings."
-          icon={Clock}
+          iconElement={<Clock size={24} />}
         />
       </div>
     </div>
   );
 }
 
-function StatCard({ title, value, icon: Icon, color }) {
+function StatCard({ title, value, iconElement, color }) {
   return (
     <Card className="p-6 flex items-center gap-4 hover:shadow-md transition-all border-l-4 border-l-transparent hover:border-l-primary">
-      <div className={`p-3 rounded-lg ${color}`}><Icon size={24}/></div>
+      <div className={`p-3 rounded-lg ${color}`}>{iconElement}</div>
       <div>
         <p className="text-sm text-muted-foreground">{title}</p>
         <h2 className="text-2xl font-bold">{value}</h2>
@@ -80,11 +80,11 @@ function StatCard({ title, value, icon: Icon, color }) {
   );
 }
 
-function ActionCard({ title, description, icon: Icon }) {
+function ActionCard({ title, description, iconElement }) {
   return (
     <div className="group rounded-xl border bg-card p-6 shadow-sm hover:border-primary transition-all cursor-pointer hover:shadow-lg">
       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
-        <Icon size={24} />
+        {iconElement}
       </div>
       <h3 className="text-xl font-semibold">{title}</h3>
       <p className="text-sm text-muted-foreground mt-2">{description}</p>
