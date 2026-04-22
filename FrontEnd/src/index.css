@@ -99,7 +99,36 @@
 
     --sidebar-border: oklch(0.922 0 0);
 
-    --sidebar-ring: oklch(0.708 0 0)
+    --sidebar-ring: oklch(0.708 0 0);
+
+    /* High-End Design System Tokens */
+    --brand-blue: #0ea5e9;
+    --brand-blue-dark: #0369a1;
+    --brand-blue-light: #e0f2fe;
+    
+    --brand-green: #10b981;
+    --brand-green-dark: #047857;
+    --brand-green-light: #d1fae5;
+    
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+.glass-morphism {
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+}
+
+.mesh-gradient {
+    background-color: #0ea5e9;
+    background-image: 
+        radial-gradient(at 0% 0%, #10b981 0, transparent 50%), 
+        radial-gradient(at 50% 0%, #0369a1 0, transparent 50%), 
+        radial-gradient(at 100% 0%, #10b981 0, transparent 50%);
 }
 
 @media (prefers-color-scheme: dark) {

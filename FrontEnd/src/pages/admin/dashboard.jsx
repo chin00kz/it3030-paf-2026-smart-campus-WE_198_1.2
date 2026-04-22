@@ -8,7 +8,7 @@ import {
   CardDescription,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, ShieldCheck, FileText, Activity, ChevronRight, Zap, ArrowRight, ShieldAlert } from "lucide-react"
+import { Users, ShieldCheck, FileText, Activity, ChevronRight, Zap, ArrowRight, ShieldAlert, Box, Grid, CheckCircle, XCircle } from "lucide-react"
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null)
@@ -45,8 +45,10 @@ export default function AdminDashboard() {
         <p className="text-slate-500 font-medium">Welcome back! Here's the pulse of Smart Campus today.</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="space-y-4">
+          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Users className="text-[#3b82f6]" size={20} /> User Governance</h2>
+          {/* Stats Grid */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCard 
           title="TOTAL USERS" 
           value={stats?.totalUsers || 0} 
@@ -72,6 +74,37 @@ export default function AdminDashboard() {
           description="Accounts currently restricted" 
           icon={ShieldAlert} 
         />
+      </div>
+      </div>
+
+      <div className="space-y-4 pt-4">
+          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Box className="text-[#3b82f6]" size={20} /> Resource Overview</h2>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard 
+              title="TOTAL RESOURCES" 
+              value={stats?.totalResources || 0} 
+              description="Tracked campus assets" 
+              icon={Box} 
+            />
+            <StatCard 
+              title="ACTIVE ASSETS" 
+              value={stats?.activeResources || 0} 
+              description="Currently available" 
+              icon={CheckCircle} 
+            />
+            <StatCard 
+              title="OUT OF SERVICE" 
+              value={stats?.outOfServiceResources || 0} 
+              description="Unavailable / Maintenance" 
+              icon={XCircle} 
+            />
+            <StatCard 
+              title="CATEGORIES" 
+              value={stats?.resourcesByType ? Object.keys(stats.resourcesByType).length : 0} 
+              description="Distinct classifications" 
+              icon={Grid} 
+            />
+          </div>
       </div>
 
       {/* Main Content Layout */}

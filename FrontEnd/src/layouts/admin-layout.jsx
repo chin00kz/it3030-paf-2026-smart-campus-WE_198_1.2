@@ -20,9 +20,15 @@ export default function AdminLayout() {
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <nav className="flex items-center space-x-2 text-sm font-medium">
-              <span className="text-muted-foreground">Admin</span>
-              <span className="text-muted-foreground">/</span>
-              <span>{formattedPath}</span>
+              {pathnames.map((segment, index) => (
+                <div key={segment} className="flex items-center gap-2">
+                  <span className={index === pathnames.length - 1 ? "text-foreground font-bold" : "text-muted-foreground"}>
+                    {segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ")}
+                  </span>
+                  {index < pathnames.length - 1 && <span className="text-muted-foreground">/</span>}
+                </div>
+              ))}
+              {pathnames.length === 0 && <span className="text-foreground font-bold">Dashboard</span>}
             </nav>
           </div>
         </header>
