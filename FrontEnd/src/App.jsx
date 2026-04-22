@@ -18,6 +18,7 @@ import StudentDashboard from "@/pages/student/dashboard"
 import NotificationsPage from "@/pages/notifications"
 import MaintenancePage from "@/pages/maintenance"
 import SettingsPage from "@/pages/admin/settings"
+import TicketsPage from "@/pages/tickets/index"
 import { ProtectedRoute } from "@/components/protected-route"
 import { AuthProvider, useAuth } from "@/contexts/AuthContext"
 
@@ -64,6 +65,7 @@ function App() {
           <Route path="reports" element={<Reports />} />
           <Route path="resources" element={<ResourcesPage />} />
           <Route path="bookings" element={<AdminBookingsPage />} />
+          <Route path="tickets" element={<TicketsPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
@@ -80,6 +82,7 @@ function App() {
           <Route index element={<ManagerDashboard />} />
           <Route path="reports" element={<Reports />} />
           <Route path="resources" element={<ResourcesPage />} />
+          <Route path="tickets" element={<TicketsPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
@@ -94,6 +97,7 @@ function App() {
           }
         >
           <Route index element={<TechnicianDashboard />} />
+          <Route path="tickets" element={<TicketsPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
@@ -111,6 +115,7 @@ function App() {
           <Route path="my-bookings" element={<MyBookings />} /> {/* මෙතන Route එක ඇතුළත් කළා */}
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="resources" element={<StudentResourcesPage />} />
+          <Route path="tickets" element={<TicketsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
 

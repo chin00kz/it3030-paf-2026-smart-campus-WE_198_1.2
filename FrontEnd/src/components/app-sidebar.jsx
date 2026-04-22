@@ -100,6 +100,12 @@ const data = {
       allowedRoles: ["ADMIN", "SUPER_ADMIN", "MANAGER"],
     },
     {
+      title: "Tickets",
+      url: "tickets",
+      icon: MessageSquare,
+      allowedRoles: ["ADMIN", "SUPER_ADMIN", "MANAGER", "TECHNICIAN", "USER"],
+    },
+    {
       title: "Settings",
       url: "settings", // relative - will be resolved per role in component
       icon: Settings,

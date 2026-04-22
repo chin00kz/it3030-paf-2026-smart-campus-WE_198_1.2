@@ -13,6 +13,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:5174", allowedHeaders = "*", methods = {RequestMethod.POST, RequestMethod.OPTIONS})
 @RequiredArgsConstructor
 public class AuthController {
 
