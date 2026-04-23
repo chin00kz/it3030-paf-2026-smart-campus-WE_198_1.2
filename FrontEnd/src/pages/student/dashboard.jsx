@@ -1,24 +1,97 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Calendar, Clock, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import { getMyBookings } from "@/api/bookingApi";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [studentData, setStudentData] = useState(null);
+  const [studentData, setStudentData] = useState({
+    name: "Student",
+    status: "ACTIVE",
+    bookings: [],
+  });
 
   useEffect(() => {
-    // API Mock Data
-    setTimeout(() => {
-      setStudentData({
-        name: "Udula Athulathmudali",
-        status: "Active",
-        activeBookings: 2,
-      });
-      setLoading(false);
-    }, 1000);
-  }, []);
+    const loadStudentDashboard = async () => {
+      try {
+        setLoading(true);
+
+        if (!user?.email) {
+          setStudentData({
+            name: user?.name || "Student",
+            status: user?.status || "ACTIVE",
+            bookings: [],
+          });
+          return;
+        }
+
+        const bookings = await getMyBookings(user.email);
+        setStudentData({
+          name: user?.name || "Student",
+          status: user?.status || "ACTIVE",
+          bookings: Array.isArray(bookings) ? bookings : [],
+        });
+      } catch (error) {
+        console.error("Error loading student dashboard:", error);
+        setStudentData({
+          name: user?.name || "Student",
+          status: user?.status || "ACTIVE",
+          bookings: [],
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStudentDashboard();
+  }, [user?.email, user?.name, user?.status]);
+
+  const toBookingDateTime = (booking) => {
+    const bookingDate = booking.bookingDate || booking.date;
+    const rawStartTime = booking.startTime || booking.time;
+
+    if (!bookingDate || !rawStartTime) {
+      return null;
+    }
+
+    const [hoursStr, minutesStr] = String(rawStartTime).split(":");
+    const hours = Number.parseInt(hoursStr, 10);
+    const minutes = Number.parseInt(minutesStr, 10);
+
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+      return null;
+    }
+
+    const date = new Date(`${bookingDate}T00:00:00`);
+    date.setHours(hours, minutes, 0, 0);
+    return date;
+  };
+
+  const nextBooking = useMemo(() => {
+    if (!studentData?.bookings?.length) {
+      return null;
+    }
+
+    const now = new Date();
+
+    return studentData.bookings
+      .filter((booking) => {
+        const normalizedStatus = (booking.status || "").toUpperCase();
+        return normalizedStatus === "CONFIRMED" || normalizedStatus === "ACCEPTED";
+      })
+      .map((booking) => ({
+        booking,
+        startDateTime: toBookingDateTime(booking),
+      }))
+      .filter(({ startDateTime }) => startDateTime && startDateTime >= now)
+      .sort((a, b) => a.startDateTime - b.startDateTime)[0]?.booking || null;
+  }, [studentData?.bookings]);
+
+  const isActive = String(studentData.status || "").toUpperCase() === "ACTIVE";
 
   if (loading) {
     return (
@@ -34,63 +107,60 @@ export default function StudentDashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            Welcome back, {studentData.name.split(' ')[0]}! 👋
+            Welcome back, {(studentData.name || "Student").split(' ')[0]}! 👋
           </h1>
           <p className="text-slate-500 mt-1">Manage your campus bookings and schedule easily.</p>
         </div>
         
         {/* Status Badge */}
         <div className={`px-4 py-2 rounded-full border flex items-center gap-2 shadow-sm ${
-          studentData.status === 'Active' ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'
+          isActive ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'
         }`}>
           <div className={`w-2.5 h-2.5 rounded-full ${
-            studentData.status === 'Active' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+            isActive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
           }`} />
           <span className={`text-sm font-bold ${
-            studentData.status === 'Active' ? 'text-emerald-700' : 'text-amber-700'
+            isActive ? 'text-emerald-700' : 'text-amber-700'
           }`}>
-            {studentData.status} Account
+            {String(studentData.status || "ACTIVE")} Account
           </span>
         </div>
       </div>
 
-      {/* Main Dashboard Grid */}
+      {/* Dashboard Grid */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Active Bookings Stat - Clickable */}
-        <StatCard 
-          title="Active Bookings" 
-          value={studentData.activeBookings} 
-          iconElement={<Calendar size={28} />} 
-          color="bg-blue-50 text-blue-600 border-blue-100"
-          onClick={() => navigate('my-bookings')}
-        />
+        
+        {/* Next Session Card (Replacement for Active Bookings) */}
+        <Card className="p-8 flex items-center gap-6 border-2 border-indigo-100 bg-indigo-50/50">
+          <div className="p-4 bg-white rounded-2xl shadow-sm text-indigo-600">
+            <Clock size={28} />
+          </div>
+          <div>
+            <p className="text-sm font-bold uppercase tracking-wider text-indigo-600/70">Next Session</p>
+            {nextBooking ? (
+              <>
+                <h2 className="text-xl font-black mt-1 text-slate-800">
+                  {nextBooking.resourceName || nextBooking.title || "Campus Resource"}
+                </h2>
+                <p className="text-sm font-medium text-slate-500 flex items-center gap-1 mt-1">
+                    <Calendar size={14}/> {nextBooking.bookingDate || nextBooking.date} • {nextBooking.startTime || nextBooking.time}
+                </p>
+              </>
+            ) : (
+              <h2 className="text-xl font-bold mt-1 text-slate-600">No upcoming sessions</h2>
+            )}
+          </div>
+        </Card>
 
-        {/* My Bookings Action - Clickable */}
+        {/* My Bookings Action */}
         <ActionCard 
           title="My Bookings" 
           description="Access your upcoming schedule and modify your reservations."
-          iconElement={<Clock size={28} />}
+          iconElement={<Calendar size={28} />}
           onClick={() => navigate('my-bookings')}
         />
       </div>
     </div>
-  );
-}
-
-function StatCard({ title, value, iconElement, color, onClick }) {
-  return (
-    <Card 
-      onClick={onClick}
-      className={`p-8 flex items-center gap-6 border-2 transition-all cursor-pointer hover:shadow-md ${color}`}
-    >
-      <div className="p-4 bg-white rounded-2xl shadow-sm leading-none">
-        {iconElement}
-      </div>
-      <div>
-        <p className="text-sm font-bold uppercase tracking-wider opacity-80">{title}</p>
-        <h2 className="text-4xl font-black mt-1">{value}</h2>
-      </div>
-    </Card>
   );
 }
 
