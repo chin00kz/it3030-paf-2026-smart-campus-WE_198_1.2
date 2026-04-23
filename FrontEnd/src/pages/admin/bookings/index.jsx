@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { getAllBookings, updateBookingStatus } from "@/api/bookingApi";
 import { 
     Calendar, Clock, User, Mail, MessageSquare, CheckCircle, XCircle, 
-    AlertCircle, Loader, Search, Filter, Info, ChevronRight 
+    AlertCircle, Loader, Search, Filter, Info, ChevronRight, X 
 } from "lucide-react";
 
 export default function AdminBookingsPage() {
