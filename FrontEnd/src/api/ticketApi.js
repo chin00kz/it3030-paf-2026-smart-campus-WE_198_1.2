@@ -46,6 +46,10 @@ export const deleteTicketComment = async (ticketId, commentId, actorEmail) => {
   return response.data
 }
 
+export const buildTicketAttachmentDownloadUrl = (ticketId, attachmentId, actorEmail) => {
+  return `${BASE_URL}/${ticketId}/attachments/${attachmentId}?actorEmail=${encodeURIComponent(actorEmail)}`
+}
+
 export const getApiError = (error) => {
   return error?.response?.data?.message || error?.response?.data?.error || error?.message || "Request failed"
 }

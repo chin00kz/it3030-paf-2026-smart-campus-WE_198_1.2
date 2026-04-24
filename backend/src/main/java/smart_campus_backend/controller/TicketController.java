@@ -1,7 +1,11 @@
 package smart_campus_backend.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,6 +28,7 @@ import smart_campus_backend.dto.TicketStatusUpdateRequest;
 import smart_campus_backend.model.TicketStatus;
 import smart_campus_backend.service.TicketService;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -55,6 +60,33 @@ public class TicketController {
     public ResponseEntity<TicketResponse> getTicketById(@PathVariable Long id) {
         return ResponseEntity.ok(ticketService.getTicketById(id));
     }
+
+        @GetMapping("/{id}/attachments/{attachmentId}")
+        public ResponseEntity<Resource> downloadAttachment(
+            @PathVariable Long id,
+            @PathVariable Long attachmentId,
+            @RequestParam String actorEmail
+        ) {
+        TicketService.AttachmentDownload attachment = ticketService.getAttachmentForDownload(id, attachmentId, actorEmail);
+
+        ContentDisposition disposition = ContentDisposition.attachment()
+            .filename(attachment.getFileName(), StandardCharsets.UTF_8)
+            .build();
+
+        MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
+        if (attachment.getContentType() != null && !attachment.getContentType().isBlank()) {
+            try {
+                mediaType = MediaType.parseMediaType(attachment.getContentType());
+            } catch (InvalidMediaTypeException ignored) {
+                mediaType = MediaType.APPLICATION_OCTET_STREAM;
+            }
+        }
+
+        return ResponseEntity.ok()
+            .contentType(mediaType)
+            .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+            .body(attachment.getResource());
+        }
 
     @PatchMapping("/{id}/assign")
     public ResponseEntity<TicketResponse> assignTechnician(@PathVariable Long id, @Valid @RequestBody TicketAssignRequest request) {
