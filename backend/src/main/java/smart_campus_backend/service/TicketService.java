@@ -25,11 +25,14 @@ import smart_campus_backend.repository.TicketRepository;
 import smart_campus_backend.repository.UserRepository;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -231,7 +234,18 @@ public class TicketService {
             return;
         }
 
-        if (attachments.length > MAX_ATTACHMENTS) {
+        List<MultipartFile> nonEmptyAttachments = new ArrayList<>();
+        for (MultipartFile file : attachments) {
+            if (file != null && !file.isEmpty()) {
+                nonEmptyAttachments.add(file);
+            }
+        }
+
+        if (nonEmptyAttachments.isEmpty()) {
+            return;
+        }
+
+        if (nonEmptyAttachments.size() > MAX_ATTACHMENTS) {
             throw new IllegalArgumentException("A ticket can include up to " + MAX_ATTACHMENTS + " attachments");
         }
 
@@ -242,22 +256,15 @@ public class TicketService {
             throw new IllegalArgumentException("Unable to prepare attachment storage", e);
         }
 
-        for (MultipartFile file : attachments) {
-            if (file == null || file.isEmpty()) {
-                continue;
-            }
+        for (MultipartFile file : nonEmptyAttachments) {
 
             if (file.getSize() > MAX_ATTACHMENT_SIZE_BYTES) {
                 throw new IllegalArgumentException("Attachment exceeds 5MB limit: " + file.getOriginalFilename());
             }
 
-            String contentType = file.getContentType();
-            if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase())) {
-                throw new IllegalArgumentException("Unsupported attachment type: " + file.getOriginalFilename());
-            }
-
             String original = file.getOriginalFilename() == null ? "attachment" : file.getOriginalFilename();
             String safeOriginal = Paths.get(original).getFileName().toString();
+            String contentType = resolveAndValidateImageType(file, safeOriginal);
             String extension = "";
             int dotIndex = safeOriginal.lastIndexOf('.');
             if (dotIndex >= 0) {
@@ -282,6 +289,62 @@ public class TicketService {
             attachment.setFilePath(targetPath.toString());
             attachment.setFileType(contentType);
             ticket.getAttachments().add(attachment);
+        }
+    }
+
+    private String resolveAndValidateImageType(MultipartFile file, String safeOriginal) {
+        String declaredType = file.getContentType() == null
+                ? ""
+                : file.getContentType().toLowerCase(Locale.ROOT);
+        if (!declaredType.isBlank() && !declaredType.startsWith("image/")) {
+            throw new IllegalArgumentException("Unsupported attachment type: " + safeOriginal);
+        }
+
+        String detectedType = detectImageTypeFromSignature(file);
+        if (detectedType == null || !ALLOWED_IMAGE_TYPES.contains(detectedType)) {
+            throw new IllegalArgumentException("Attachment must be a JPEG, PNG, or WEBP image: " + safeOriginal);
+        }
+
+        return detectedType;
+    }
+
+    private String detectImageTypeFromSignature(MultipartFile file) {
+        try (InputStream input = file.getInputStream()) {
+            byte[] header = input.readNBytes(12);
+            if (header.length >= 3
+                    && (header[0] & 0xFF) == 0xFF
+                    && (header[1] & 0xFF) == 0xD8
+                    && (header[2] & 0xFF) == 0xFF) {
+                return "image/jpeg";
+            }
+
+            if (header.length >= 8
+                    && (header[0] & 0xFF) == 0x89
+                    && header[1] == 'P'
+                    && header[2] == 'N'
+                    && header[3] == 'G'
+                    && (header[4] & 0xFF) == 0x0D
+                    && (header[5] & 0xFF) == 0x0A
+                    && (header[6] & 0xFF) == 0x1A
+                    && (header[7] & 0xFF) == 0x0A) {
+                return "image/png";
+            }
+
+            if (header.length >= 12
+                    && header[0] == 'R'
+                    && header[1] == 'I'
+                    && header[2] == 'F'
+                    && header[3] == 'F'
+                    && header[8] == 'W'
+                    && header[9] == 'E'
+                    && header[10] == 'B'
+                    && header[11] == 'P') {
+                return "image/webp";
+            }
+
+            return null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to validate attachment type: " + file.getOriginalFilename(), e);
         }
     }
 
