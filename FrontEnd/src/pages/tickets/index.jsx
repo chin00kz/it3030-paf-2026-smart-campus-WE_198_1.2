@@ -98,6 +98,12 @@ export default function TicketsPage() {
       return
     }
 
+    const hasInvalidAttachment = createForm.attachments.some((file) => !file.type.startsWith("image/"))
+    if (hasInvalidAttachment) {
+      setError("Only image attachments are allowed")
+      return
+    }
+
     setSubmitting(true)
     setError("")
     try {
@@ -125,6 +131,28 @@ export default function TicketsPage() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const onAttachmentChange = (e) => {
+    const files = Array.from(e.target.files || [])
+
+    if (files.length > 3) {
+      setError("Only up to 3 image attachments are allowed")
+      setCreateForm((prev) => ({ ...prev, attachments: [] }))
+      e.target.value = ""
+      return
+    }
+
+    const hasInvalidAttachment = files.some((file) => !file.type.startsWith("image/"))
+    if (hasInvalidAttachment) {
+      setError("Only image attachments are allowed")
+      setCreateForm((prev) => ({ ...prev, attachments: [] }))
+      e.target.value = ""
+      return
+    }
+
+    setError("")
+    setCreateForm((prev) => ({ ...prev, attachments: files }))
   }
 
   const onAssign = async (ticketId, technicianId) => {
@@ -278,7 +306,7 @@ export default function TicketsPage() {
             type="file"
             accept="image/png,image/jpeg,image/webp"
             multiple
-            onChange={(e) => setCreateForm((prev) => ({ ...prev, attachments: e.target.files || [] }))}
+            onChange={onAttachmentChange}
           />
           <button
             type="submit"
