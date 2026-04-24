@@ -4,6 +4,7 @@ import { getResources } from "@/api/resourceApi"
 import {
   addTicketComment,
   assignTechnician,
+  buildTicketAttachmentDownloadUrl,
   createTicket,
   deleteTicketComment,
   getApiError,
@@ -36,6 +37,7 @@ export default function TicketsPage() {
   const isAdminLike = ADMIN_ROLES.includes(user?.role)
   const isTechnician = user?.role === "TECHNICIAN"
   const isReporter = user?.role === "USER"
+  const canDownloadAttachments = isAdminLike || isTechnician
 
   const statusOptions = useMemo(() => {
     if (isAdminLike) return ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED", "REJECTED"]
@@ -350,7 +352,20 @@ export default function TicketsPage() {
                   <p className="font-medium mb-1">Attachments</p>
                   <ul className="space-y-1">
                     {ticket.attachments.map((file) => (
-                      <li key={file.id} className="text-muted-foreground">{file.fileName}</li>
+                      <li key={file.id}>
+                        {canDownloadAttachments ? (
+                          <a
+                            href={buildTicketAttachmentDownloadUrl(ticket.id, file.id, user.email)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-primary underline underline-offset-2 hover:opacity-80"
+                          >
+                            {file.fileName}
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground">{file.fileName}</span>
+                        )}
+                      </li>
                     ))}
                   </ul>
                 </div>
