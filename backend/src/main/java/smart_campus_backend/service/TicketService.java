@@ -2,6 +2,7 @@ package smart_campus_backend.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.UrlResource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,6 +34,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -94,6 +96,71 @@ public class TicketService {
 
     public TicketResponse getTicketById(Long ticketId) {
         return mapToResponse(getTicketOrThrow(ticketId));
+    }
+
+    public AttachmentDownload getAttachmentForDownload(Long ticketId, Long attachmentId, String actorEmail) {
+        User actor = findUserByEmail(actorEmail);
+        Ticket ticket = getTicketOrThrow(ticketId);
+        ensureAttachmentDownloadPermission(ticket, actor);
+
+        TicketAttachment attachment = ticket.getAttachments().stream()
+                .filter(a -> a.getId().equals(attachmentId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Attachment not found with id: " + attachmentId));
+
+        Path storedPath = resolveExistingAttachmentPath(ticketId, attachment.getFilePath())
+                .orElseThrow(() -> new ResourceNotFoundException("Attachment file not found"));
+
+        if (!Files.isRegularFile(storedPath)) {
+            throw new ResourceNotFoundException("Attachment file not found");
+        }
+
+        try {
+            org.springframework.core.io.Resource resource = new UrlResource(storedPath.toUri());
+            if (!resource.exists()) {
+                throw new ResourceNotFoundException("Attachment file not found");
+            }
+            return new AttachmentDownload(resource, attachment.getFileName(), attachment.getFileType());
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Unable to load attachment", e);
+        }
+    }
+
+    private Optional<Path> resolveExistingAttachmentPath(Long ticketId, String savedFilePath) {
+        if (savedFilePath == null || savedFilePath.isBlank()) {
+            return Optional.empty();
+        }
+
+        Path rawPath = Paths.get(savedFilePath).normalize();
+        List<Path> candidates = new ArrayList<>();
+
+        if (rawPath.isAbsolute()) {
+            candidates.add(rawPath);
+        } else {
+            candidates.add(rawPath.toAbsolutePath().normalize());
+
+            Path cwd = Paths.get("").toAbsolutePath().normalize();
+            Path parent = cwd.getParent();
+            if (parent != null) {
+                candidates.add(parent.resolve(rawPath).normalize());
+            }
+        }
+
+        Path configuredTicketDir = Paths.get(attachmentsBaseDir, String.valueOf(ticketId)).normalize();
+        if (!configuredTicketDir.isAbsolute()) {
+            configuredTicketDir = configuredTicketDir.toAbsolutePath().normalize();
+        }
+        if (rawPath.getFileName() != null) {
+            candidates.add(configuredTicketDir.resolve(rawPath.getFileName()).normalize());
+        }
+
+        for (Path candidate : candidates) {
+            if (Files.exists(candidate)) {
+                return Optional.of(candidate);
+            }
+        }
+
+        return Optional.empty();
     }
 
     @Transactional
@@ -400,6 +467,24 @@ public class TicketService {
         }
     }
 
+    private void ensureAttachmentDownloadPermission(Ticket ticket, User actor) {
+        boolean isAdminLike = actor.getRole() == Role.ADMIN
+                || actor.getRole() == Role.SUPER_ADMIN
+                || actor.getRole() == Role.MANAGER;
+
+        if (isAdminLike) {
+            return;
+        }
+
+        if (actor.getRole() == Role.TECHNICIAN
+                && ticket.getTechnician() != null
+                && ticket.getTechnician().getId().equals(actor.getId())) {
+            return;
+        }
+
+        throw new IllegalArgumentException("Only admin or assigned technician can download attachments");
+    }
+
     private Ticket getTicketOrThrow(Long ticketId) {
         return ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with id: " + ticketId));
@@ -469,5 +554,29 @@ public class TicketService {
         String safeDescription = description == null ? "" : description.trim();
         String base = safeDescription.isEmpty() ? safeCategory : safeCategory + ": " + safeDescription;
         return base.length() > 255 ? base.substring(0, 255) : base;
+    }
+
+    public static class AttachmentDownload {
+        private final org.springframework.core.io.Resource resource;
+        private final String fileName;
+        private final String contentType;
+
+        public AttachmentDownload(org.springframework.core.io.Resource resource, String fileName, String contentType) {
+            this.resource = resource;
+            this.fileName = fileName;
+            this.contentType = contentType;
+        }
+
+        public org.springframework.core.io.Resource getResource() {
+            return resource;
+        }
+
+        public String getFileName() {
+            return fileName;
+        }
+
+        public String getContentType() {
+            return contentType;
+        }
     }
 }
