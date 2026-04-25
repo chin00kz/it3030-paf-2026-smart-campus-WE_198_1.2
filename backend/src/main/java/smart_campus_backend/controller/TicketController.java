@@ -51,8 +51,7 @@ public class TicketController {
     public ResponseEntity<List<TicketResponse>> getTickets(
             @RequestParam(required = false) TicketStatus status,
             @RequestParam(required = false) String reportedByEmail,
-            @RequestParam(required = false) String technicianEmail
-    ) {
+            @RequestParam(required = false) String technicianEmail) {
         return ResponseEntity.ok(ticketService.getTickets(status, reportedByEmail, technicianEmail));
     }
 
@@ -61,17 +60,28 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getTicketById(id));
     }
 
-        @GetMapping("/{id}/attachments/{attachmentId}")
-        public ResponseEntity<Resource> downloadAttachment(
+    @GetMapping("/resource/{resourceId}/active")
+    public ResponseEntity<List<TicketResponse>> getActiveTicketsForResource(@PathVariable Long resourceId) {
+        return ResponseEntity.ok(ticketService.getActiveTicketsForResource(resourceId));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTicket(@PathVariable Long id, @RequestParam String actorEmail) {
+        ticketService.deleteTicket(id, actorEmail);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/attachments/{attachmentId}")
+    public ResponseEntity<Resource> downloadAttachment(
             @PathVariable Long id,
             @PathVariable Long attachmentId,
-            @RequestParam String actorEmail
-        ) {
-        TicketService.AttachmentDownload attachment = ticketService.getAttachmentForDownload(id, attachmentId, actorEmail);
+            @RequestParam String actorEmail) {
+        TicketService.AttachmentDownload attachment = ticketService.getAttachmentForDownload(id, attachmentId,
+                actorEmail);
 
         ContentDisposition disposition = ContentDisposition.attachment()
-            .filename(attachment.getFileName(), StandardCharsets.UTF_8)
-            .build();
+                .filename(attachment.getFileName(), StandardCharsets.UTF_8)
+                .build();
 
         MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
         if (attachment.getContentType() != null && !attachment.getContentType().isBlank()) {
@@ -83,23 +93,26 @@ public class TicketController {
         }
 
         return ResponseEntity.ok()
-            .contentType(mediaType)
-            .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
-            .body(attachment.getResource());
-        }
+                .contentType(mediaType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+                .body(attachment.getResource());
+    }
 
     @PatchMapping("/{id}/assign")
-    public ResponseEntity<TicketResponse> assignTechnician(@PathVariable Long id, @Valid @RequestBody TicketAssignRequest request) {
+    public ResponseEntity<TicketResponse> assignTechnician(@PathVariable Long id,
+            @Valid @RequestBody TicketAssignRequest request) {
         return ResponseEntity.ok(ticketService.assignTechnician(id, request));
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<TicketResponse> updateStatus(@PathVariable Long id, @Valid @RequestBody TicketStatusUpdateRequest request) {
+    public ResponseEntity<TicketResponse> updateStatus(@PathVariable Long id,
+            @Valid @RequestBody TicketStatusUpdateRequest request) {
         return ResponseEntity.ok(ticketService.updateStatus(id, request));
     }
 
     @PostMapping("/{id}/comments")
-    public ResponseEntity<TicketResponse> addComment(@PathVariable Long id, @Valid @RequestBody TicketCommentRequest request) {
+    public ResponseEntity<TicketResponse> addComment(@PathVariable Long id,
+            @Valid @RequestBody TicketCommentRequest request) {
         return ResponseEntity.ok(ticketService.addComment(id, request));
     }
 
@@ -107,8 +120,7 @@ public class TicketController {
     public ResponseEntity<TicketResponse> updateComment(
             @PathVariable Long id,
             @PathVariable Long commentId,
-            @Valid @RequestBody TicketCommentRequest request
-    ) {
+            @Valid @RequestBody TicketCommentRequest request) {
         return ResponseEntity.ok(ticketService.updateComment(id, commentId, request));
     }
 
@@ -116,8 +128,7 @@ public class TicketController {
     public ResponseEntity<TicketResponse> deleteComment(
             @PathVariable Long id,
             @PathVariable Long commentId,
-            @RequestParam String actorEmail
-    ) {
+            @RequestParam String actorEmail) {
         return ResponseEntity.ok(ticketService.deleteComment(id, commentId, actorEmail));
     }
 }
