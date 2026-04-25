@@ -46,8 +46,7 @@ public class TicketService {
     private static final int MAX_ATTACHMENTS = 3;
     private static final long MAX_ATTACHMENT_SIZE_BYTES = 5L * 1024 * 1024;
     private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
-            "image/jpeg", "image/png", "image/webp"
-    );
+            "image/jpeg", "image/png", "image/webp");
 
     private final TicketRepository ticketRepository;
     private final TicketCommentRepository ticketCommentRepository;
@@ -61,7 +60,8 @@ public class TicketService {
     @Transactional
     public TicketResponse createTicket(TicketCreateRequest request) {
         Resource resource = resourceRepository.findById(request.getResourceId())
-                .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + request.getResourceId()));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Resource not found with id: " + request.getResourceId()));
         User reporter = findUserByEmail(request.getReportedByEmail());
 
         Ticket ticket = new Ticket();
@@ -96,6 +96,28 @@ public class TicketService {
 
     public TicketResponse getTicketById(Long ticketId) {
         return mapToResponse(getTicketOrThrow(ticketId));
+    }
+
+    public List<TicketResponse> getActiveTicketsForResource(Long resourceId) {
+        return ticketRepository
+                .findByResourceIdAndStatusIn(resourceId, List.of(TicketStatus.OPEN, TicketStatus.IN_PROGRESS))
+                .stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deleteTicket(Long ticketId, String actorEmail) {
+        User actor = findUserByEmail(actorEmail);
+        Ticket ticket = getTicketOrThrow(ticketId);
+
+        boolean isReporter = ticket.getReportedBy().getId().equals(actor.getId());
+        boolean isAdmin = actor.getRole() == Role.ADMIN || actor.getRole() == Role.SUPER_ADMIN
+                || actor.getRole() == Role.MANAGER;
+
+        if (!isReporter && !isAdmin) {
+            throw new IllegalArgumentException("Only the original reporter or an admin can delete a ticket");
+        }
+
+        ticketRepository.delete(ticket);
     }
 
     public AttachmentDownload getAttachmentForDownload(Long ticketId, Long attachmentId, String actorEmail) {
@@ -170,7 +192,8 @@ public class TicketService {
 
         Ticket ticket = getTicketOrThrow(ticketId);
         User technician = userRepository.findById(request.getTechnicianId())
-                .orElseThrow(() -> new ResourceNotFoundException("Technician not found with id: " + request.getTechnicianId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Technician not found with id: " + request.getTechnicianId()));
 
         if (technician.getRole() != Role.TECHNICIAN) {
             throw new IllegalArgumentException("Assigned user must have TECHNICIAN role");
@@ -183,8 +206,7 @@ public class TicketService {
                 technician.getId(),
                 "New Ticket Assignment",
                 "You have been assigned ticket #" + ticket.getId(),
-                "/technician/tickets"
-        );
+                "/technician/tickets");
 
         return mapToResponse(updated);
     }
@@ -216,8 +238,7 @@ public class TicketService {
                     ticket.getReportedBy().getId(),
                     "Ticket Status Updated",
                     "Ticket #" + ticket.getId() + " changed to " + ticket.getStatus(),
-                    "/dashboard/tickets"
-            );
+                    "/dashboard/tickets");
         }
 
         return mapToResponse(updated);
@@ -239,8 +260,7 @@ public class TicketService {
                     ticket.getReportedBy().getId(),
                     "New Comment on Ticket",
                     "A new comment was added to ticket #" + ticket.getId(),
-                    "/dashboard/tickets"
-            );
+                    "/dashboard/tickets");
         }
 
         if (ticket.getTechnician() != null && !ticket.getTechnician().getId().equals(actor.getId())) {
@@ -248,8 +268,7 @@ public class TicketService {
                     ticket.getTechnician().getId(),
                     "New Comment on Assigned Ticket",
                     "A new comment was added to ticket #" + ticket.getId(),
-                    "/technician/tickets"
-            );
+                    "/technician/tickets");
         }
 
         return mapToResponse(getTicketOrThrow(ticketId));
@@ -416,7 +435,8 @@ public class TicketService {
     }
 
     private void validateStatusUpdatePermission(Ticket ticket, User actor, TicketStatus nextStatus) {
-        boolean isAdminLike = actor.getRole() == Role.ADMIN || actor.getRole() == Role.SUPER_ADMIN || actor.getRole() == Role.MANAGER;
+        boolean isAdminLike = actor.getRole() == Role.ADMIN || actor.getRole() == Role.SUPER_ADMIN
+                || actor.getRole() == Role.MANAGER;
 
         if (isAdminLike) {
             return;
@@ -507,7 +527,8 @@ public class TicketService {
                         .build())
                 .collect(Collectors.toList());
 
-        List<TicketResponse.CommentInfo> comments = ticketCommentRepository.findByTicketIdOrderByCreatedAtAsc(ticket.getId())
+        List<TicketResponse.CommentInfo> comments = ticketCommentRepository
+                .findByTicketIdOrderByCreatedAtAsc(ticket.getId())
                 .stream()
                 .map(c -> TicketResponse.CommentInfo.builder()
                         .id(c.getId())
