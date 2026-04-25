@@ -52,11 +52,13 @@ export const auditLogService = {
 }
 
 export const notificationService = {
+  getAllNotifications: () => api.get(`/notifications/all`).then((res) => res.data),
   getNotifications: (userId) => api.get(`/notifications/user/${userId}`).then((res) => res.data),
   getUnreadCount: (userId) => api.get(`/notifications/user/${userId}/unread-count`).then((res) => res.data),
   markAsRead: (id) => api.patch(`/notifications/${id}/read`).then((res) => res.data),
   markAllAsRead: (userId) => api.patch(`/notifications/user/${userId}/read-all`).then((res) => res.data),
 }
+
 
 export const dashboardService = {
   getStats: () => api.get("/dashboard/stats").then((res) => res.data),

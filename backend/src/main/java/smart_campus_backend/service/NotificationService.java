@@ -26,6 +26,12 @@ public class NotificationService {
         return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
+    public List<Notification> getAllNotifications() {
+        return notificationRepository.findAll(
+                org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt")
+        );
+    }
+
     public Long getUnreadCount(Long userId) {
         return notificationRepository.countByUserIdAndIsReadFalse(userId);
     }

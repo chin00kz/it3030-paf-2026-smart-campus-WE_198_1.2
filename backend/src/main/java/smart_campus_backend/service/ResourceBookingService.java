@@ -6,6 +6,8 @@ import smart_campus_backend.exception.ResourceNotFoundException;
 import smart_campus_backend.model.*;
 import smart_campus_backend.repository.ResourceBookingRepository;
 import smart_campus_backend.repository.ResourceRepository;
+import smart_campus_backend.repository.UserRepository;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import jakarta.annotation.PostConstruct;
 import java.util.List;
@@ -16,11 +18,20 @@ public class ResourceBookingService {
 
     private final ResourceBookingRepository bookingRepository;
     private final ResourceRepository resourceRepository;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public ResourceBookingService(ResourceBookingRepository bookingRepository,
-                                  ResourceRepository resourceRepository) {
+                                  ResourceRepository resourceRepository,
+                                  UserRepository userRepository,
+                                  NotificationService notificationService,
+                                  SimpMessagingTemplate messagingTemplate) {
         this.bookingRepository = bookingRepository;
         this.resourceRepository = resourceRepository;
+        this.userRepository = userRepository;
+        this.notificationService = notificationService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @PostConstruct
@@ -86,7 +97,23 @@ public class ResourceBookingService {
         // Note: We no longer set the resource status to BOOKED globally 
         // to allow it to be booked on other dates.
 
-        return mapToDto(savedBooking);
+        ResourceBookingDTO resultDto = mapToDto(savedBooking);
+
+        // Notify Admins
+        List<User> admins = userRepository.findByRole(Role.ADMIN);
+        String notificationTitle = "New Resource Booking Request";
+        String notificationMessage = String.format("%s requested to book '%s' on %s.", 
+                dto.getBookedByName(), resource.getName(), dto.getBookingDate());
+        String notificationLink = "/dashboard/admin/resources";
+
+        for (User admin : admins) {
+            notificationService.createNotification(admin.getId(), notificationTitle, notificationMessage, notificationLink);
+        }
+
+        // Broadcast to WebSocket
+        messagingTemplate.convertAndSend("/topic/admin/bookings", resultDto);
+
+        return resultDto;
     }
 
     public List<ResourceBookingDTO> getAllBookings() {

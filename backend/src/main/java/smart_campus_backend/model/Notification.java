@@ -2,6 +2,7 @@ package smart_campus_backend.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 
 @Entity
@@ -27,6 +28,7 @@ public class Notification {
     @Column(nullable = true)
     private String link;
 
+    @JsonProperty("isRead")
     @Builder.Default
     @Column(nullable = false)
     private boolean isRead = false;
