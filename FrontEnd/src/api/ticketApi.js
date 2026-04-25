@@ -21,6 +21,16 @@ export const getTickets = async (params = {}) => {
   return response.data
 }
 
+export const getActiveTicketsForResource = async (resourceId) => {
+  const response = await axios.get(`${BASE_URL}/resource/${resourceId}/active`)
+  return response.data
+}
+
+export const deleteTicket = async (ticketId, actorEmail) => {
+  const response = await axios.delete(`${BASE_URL}/${ticketId}?actorEmail=${encodeURIComponent(actorEmail)}`)
+  return response.data
+}
+
 export const assignTechnician = async (ticketId, payload) => {
   const response = await axios.patch(`${BASE_URL}/${ticketId}/assign`, payload)
   return response.data
