@@ -10,6 +10,10 @@ export default function AdminLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const stompClientRef = useRef(null)
+  const navigateRef = useRef(navigate)
+
+  // Keep navigateRef up-to-date on every render
+  navigateRef.current = navigate
   
   // Simple breadcrumb logic
   const pathnames = location.pathname.split("/").filter((x) => x)
@@ -31,7 +35,7 @@ export default function AdminLayout() {
               position: "top-right",
               action: {
                 label: "View",
-                onClick: () => navigate("/dashboard/admin/resources")
+                onClick: () => navigateRef.current("/admin/notifications")
               }
             })
           }
